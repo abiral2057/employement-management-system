@@ -3,6 +3,13 @@
     <i class="hamburger align-self-center"></i>
   </a>
 
+  <div class="d-none d-lg-flex align-items-center text-muted me-3">
+    <i class="fa-regular fa-calendar me-2"></i>
+    <span id="navbarLiveDate" class="me-3">{{ now()->format('M d, Y') }}</span>
+    <i class="fa-regular fa-clock me-2"></i>
+    <span id="navbarLiveTime">{{ now()->format('g:i A') }}</span>
+  </div>
+
   <ul class="navbar-nav navbar-align">
     <li class="nav-item dropdown">
       <a class="nav-icon nav-link dropdown-toggle" href="javascript:void(0)" id="itemsDropdown" data-bs-toggle="dropdown">

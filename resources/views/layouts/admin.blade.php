@@ -9,13 +9,12 @@
 	<meta name="author" content="Mohona Akter Nabila & Shorifa Akter" />
 	<meta name="keywords" content="adminkit, bootstrap, bootstrap 5, admin, dashboard, template, responsive, css, sass, html, theme, front-end, ui kit, web" />
 	<title>@yield('title') | {{ config('app.name') }}</title>
-	<link rel="preconnect" href="https://fonts.gstatic.com" />
 	<link rel="shortcut icon" href="img/icons/icon-48x48.png" />
 	<link rel="canonical" href="https://demo-basic.adminkit.io/pages-blank.html" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 	<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.css" />
 	<link href="{{ asset('css/app.css') }}" rel="stylesheet" />
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+	<link href="{{ asset('css/satoshi.css') }}" rel="stylesheet" />
 	<style>
     /* In order to place the tracking correctly */
     canvas.drawing,
@@ -79,6 +78,20 @@
 	  $(document).ready( function () {
     	$('.data-table').DataTable();
 	  } );
+	</script>
+	<script>
+	  function updateNavbarClock() {
+		const now = new Date();
+		const dateEl = document.getElementById('navbarLiveDate');
+		const timeEl = document.getElementById('navbarLiveTime');
+		if (dateEl) {
+		  dateEl.textContent = now.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+		}
+		if (timeEl) {
+		  timeEl.textContent = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+		}
+	  }
+	  setInterval(updateNavbarClock, 1000);
 	</script>
 	@yield('script')
   </body>

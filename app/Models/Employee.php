@@ -65,10 +65,6 @@ class Employee extends Model
         return $this->hasMany(Leave::class);
     }
 
-    public function allowances(): HasMany {
-        return $this->hasMany(Allowance::class);
-    }
-
     public function lateTime(): HasMany {
         return $this->hasMany(LateTime::class);
     }

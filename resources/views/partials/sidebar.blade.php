@@ -15,6 +15,14 @@
         </a>
       </li>
       @if (Auth::check() && (Auth::user()->role->slug === 'super-admin' || Auth::user()->role->slug === 'administrator'))
+        <li class="sidebar-item">
+          <a class="sidebar-link" href="{{ Auth::user()->role->slug === 'super-admin' ? route('super.performance.report') : route('admin.performance.report') }}">
+            <i class="fa-solid fa-chart-line"></i>
+            <span class="align-middle">{{ __('Performance Report') }}</span>
+          </a>
+        </li>
+      @endif
+      @if (Auth::check() && (Auth::user()->role->slug === 'super-admin' || Auth::user()->role->slug === 'administrator'))
         <li class="sidebar-header">{{ __('Users Management') }}</li>
       {{-- @endif
       @if (Auth::check() && (Auth::user()->role->slug === 'super-admin' || Auth::user()->role->slug === 'administrator')) --}}
@@ -61,6 +69,12 @@
         <a class="sidebar-link" href="{{ Auth::user()->role->slug === 'super-admin' ? route('designation.index') : (Auth::user()->role->slug === 'administrator' ? route('admin.designation.index') : route('hr.designation.index') ) }}">
           <i class="fa-solid fa-file-lines"></i>
           <span class="align-middle">{{ __('Manage Designations') }}</span>
+        </a>
+        </li>
+        <li class="sidebar-item">
+        <a class="sidebar-link" href="{{ Auth::user()->role->slug === 'super-admin' ? route('employee.search') : (Auth::user()->role->slug === 'administrator' ? route('admin.employee.search') : route('hr.employee.search') ) }}">
+          <i class="fa-solid fa-magnifying-glass-chart"></i>
+          <span class="align-middle">{{ __('Employee Search') }}</span>
         </a>
         </li>
       @endif

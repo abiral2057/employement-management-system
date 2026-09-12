@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AllowanceController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CheckController;
 use App\Http\Controllers\DepartmentController;
@@ -31,7 +30,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 // Route::get('/admin', function () {
@@ -42,13 +41,13 @@ Route::middleware('superadmin')->prefix('super')->group( function () {
 
     Route::get('/', [AdminController::class, 'index'])->name('super.dashboard');
     Route::get('/sample', [AdminController::class, 'sample'])->name('view.sample');
+    Route::get('/performance-report', [AdminController::class, 'performanceReport'])->name('super.performance.report');
     Route::resource('employee', EmployeeController::class);
     Route::resource('department', DepartmentController::class);
     Route::resource('designation', DesignationController::class);
     // Route::resource('attendance', AttendanceController::class);
     Route::resource('leaves', LeaveController::class);
     // Route::resource('salary', SalaryController::class);
-    Route::resource('allowance',AllowanceController::class);
     Route::resource('payroll',PayrollController::class);
     Route::resource('roles',RoleController::class );
     Route::resource('user',UserController::class );
@@ -69,10 +68,14 @@ Route::middleware('superadmin')->prefix('super')->group( function () {
     Route::get('/sheet-report', [PayrollController::class, 'sheetReport'])->name('payroll.report');
     Route::post('/generate', [PayrollController::class, 'generateReport'])->name('generate.payroll');
 
+    // Employee Search routes
+    Route::get('/employee/search', [EmployeeController::class, 'search'])->name('employee.search.ajax');
+    Route::get('/employee-search', [EmployeeController::class, 'searchPage'])->name('employee.search');
 
 });
 Route::middleware('admin')->prefix('admin')->group( function () {
     Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
+    Route::get('/performance-report', [AdminController::class, 'performanceReport'])->name('admin.performance.report');
     Route::prefix('department')->group(function() {
         Route::get('/', [DepartmentController::class, 'index'])->name('admin.department.index');
         Route::get('/create', [DepartmentController::class, 'create'])->name('admin.department.create');
@@ -93,6 +96,7 @@ Route::middleware('admin')->prefix('admin')->group( function () {
         Route::get('/', [EmployeeController::class, 'index'])->name('admin.employee.index');
         Route::get('/create', [EmployeeController::class, 'create'])->name('admin.employee.create');
         Route::post('/', [EmployeeController::class, 'create'])->name('admin.employee.store');
+        Route::get('/{id}/show', [EmployeeController::class, 'show'])->name('admin.employee.show');
         Route::get('/{id}/edit', [EmployeeController::class, 'edit'])->name('admin.employee.edit');
         Route::put('/{id}', [EmployeeController::class, 'update'])->name('admin.employee.update');
         Route::delete('/{id}', [EmployeeController::class, 'destroy'])->name('admin.employee.destroy');
@@ -135,6 +139,10 @@ Route::middleware('admin')->prefix('admin')->group( function () {
 
     });
     Route::post('/calculate', [PayrollController::class, 'calculatePayroll'])->name('admin.calculate.payroll');
+
+    // Employee Search routes
+    Route::get('/employee/search', [EmployeeController::class, 'search'])->name('admin.employee.search.ajax');
+    Route::get('/employee-search', [EmployeeController::class, 'searchPage'])->name('admin.employee.search');
 });
 
 Route::middleware('moderator')->prefix('moderator')->group( function () {
@@ -189,6 +197,10 @@ Route::middleware('hr')->prefix('hr-manager')->group( function () {
         Route::put('/{id}', [LeaveController::class, 'update'])->name('hr.leaves.update');
         Route::delete('/{id}', [LeaveController::class, 'destroy'])->name('hr.leaves.destroy');
     });
+
+    // Employee Search routes
+    Route::get('/employee/search', [EmployeeController::class, 'search'])->name('hr.employee.search.ajax');
+    Route::get('/employee-search', [EmployeeController::class, 'searchPage'])->name('hr.employee.search');
 });
 
 Route::middleware('payroll')->prefix('manager')->group( function () {
