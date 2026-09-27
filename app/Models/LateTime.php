@@ -9,9 +9,19 @@ use Illuminate\Database\Eloquent\Model;
 class LateTime extends Model
 {
     use HasFactory;
-    protected $fillable = [ 'employee_id', 'latetime_duration', 'latetime_date'];
 
-    public function employee(): BelongsTo {
+    protected $fillable = [
+        'employee_id',
+        'latetime_duration',
+        'latetime_date'
+    ];
+
+    protected $casts = [
+        'latetime_date' => 'date',
+    ];
+
+    public function employee(): BelongsTo
+    {
         return $this->belongsTo(Employee::class);
     }
 }

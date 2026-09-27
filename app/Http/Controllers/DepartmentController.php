@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Department;
 use App\Http\Requests\StoreDepartmentRequest;
 use App\Http\Requests\UpdateDepartmentRequest;
+use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
 {
@@ -13,8 +14,8 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        $departments = Department::all();
-        return view('admin.department.index',compact('departments'));
+        $departments = Department::withCount('employees')->get();
+        return view('admin.department.index', compact('departments'));
     }
 
     /**
@@ -23,7 +24,7 @@ class DepartmentController extends Controller
     public function create()
     {
         $departments = Department::all();
-        return view('admin.department.create',compact('departments'));
+        return view('admin.department.create', compact('departments'));
     }
 
     /**
@@ -31,7 +32,6 @@ class DepartmentController extends Controller
      */
     public function store(StoreDepartmentRequest $request)
     {
-        //
         Department::create($request->all());
         return back()->with('success', 'Department created successfully');
     }
@@ -39,9 +39,10 @@ class DepartmentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Department $department)
+    public function show($id)
     {
-        //
+        $department = Department::findOrFail($id);
+        return view('admin.department.show', compact('department'));
     }
 
     /**
@@ -50,26 +51,29 @@ class DepartmentController extends Controller
     public function edit($id)
     {
         $department = Department::findOrFail($id);
-        return view('admin.department.edit',compact('department'));
+        return view('admin.department.edit', compact('department'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateDepartmentRequest $request, Department $department)
+    public function update(UpdateDepartmentRequest $request, $id)
     {
-        //
+        $department = $id instanceof Department && $id->exists ? $id : Department::findOrFail($request->route('id') ?? (is_numeric($id) ? $id : $id->id));
         $department->update($request->all());
-        return back()->with('success','Department updated successfully');
+        return back()->with('success', 'Department updated successfully');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Department $department)
+    public function destroy($id)
     {
-        //
+        $department = $id instanceof Department && $id->exists ? $id : Department::findOrFail($id);
+        if ($department->employees()->count() > 0) {
+            return back()->with('error', 'Cannot delete department with assigned employees.');
+        }
         $department->delete();
-        return back()->with('success','Department deleted successfully');
+        return back()->with('success', 'Department deleted successfully');
     }
 }

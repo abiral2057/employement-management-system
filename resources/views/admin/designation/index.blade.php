@@ -5,11 +5,14 @@
 @endsection
 
 @section('header')
-  <div class="d-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-3">Manage Designations</h1>
-    <a href="{{ Auth::user()->role->slug === 'super-admin' ? route('designation.create') : (Auth::user()->role->slug === 'administrator' ? route('admin.designation.create') : route('hr.designation.create') ) }}" class="btn btn-primary">
-      <i class="fas fa-plus"></i>
-      <span class="ps-1">{{ __('Add New') }}</span>
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="display-6 fw-extrabold text-dark tracking-tight mb-1">{{ __('Manage Designations') }}</h1>
+      <p class="text-secondary small mb-0">{{ __('Define employee job titles, organizational levels, and grading') }}</p>
+    </div>
+    <a href="{{ Auth::user()->role->slug === 'super-admin' ? route('designation.create') : (Auth::user()->role->slug === 'administrator' ? route('admin.designation.create') : route('hr.designation.create') ) }}" class="btn btn-primary px-3 py-2 fw-bold shadow-sm d-inline-flex align-items-center">
+      <i class="fas fa-plus me-2"></i>
+      <span>{{ __('Add Designation') }}</span>
     </a>
   </div>
 @endsection
@@ -17,50 +20,56 @@
 @section('content')
 <section class="row">
   <div class="col-12">
-    <div class="card flex-fill">
-      <table class="table data-table">
-        <thead>
-          <tr>
-            <th scope="col">SL</th>
-            <th scope="col">Designation Title</th>
-            <th scope="col">Status</th>
-            <th scope="col">Date Created</th>
-            <th scope="col">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          @forelse ($designations as $designation)
+    <div class="card flex-fill border border-light-subtle shadow-sm" style="border-radius: 12px;">
+      <div class="card-body p-4">
+        <table class="table data-table align-middle mb-0">
+          <thead>
             <tr>
-              <th scope="row">{{ $loop->iteration }}</th>
-              <td>{{ $designation->title }}</td>
-              <td>
-                @if ($designation->status === 1)
-                  <span class="badge bg-success">Enable</span>
-                @elseif ($designation->status === 0)
-                  <span class="badge bg-danger">Disable</span>
-                @else
-                  <span class="badge bg-secondary">Pending</span>
-                @endif
-              </td>
-              <td>
-                {{ $designation->created_at->diffforhumans() }}
-              </td>
-              <td class="d-flex justify-content-center ">
-                <a href="{{ Auth::user()->role->slug === 'super-admin' ? route('designation.edit', $designation->id) : (Auth::user()->role->slug === 'administrator' ? route('admin.designation.edit', $designation->id) : route('hr.designation.edit', $designation->id) ) }}" class="btn btn-outline-success btn-sm mx-2">
-                  <i class="fas fa-edit"></i>
-                </a>
-                <form action="{{ Auth::user()->role->slug === 'super-admin' ? route('designation.destroy', $designation->id) : (Auth::user()->role->slug === 'administrator' ? route('admin.designation.destroy', $designation->id) : route('hr.designation.destroy', $designation->id) ) }}" method="post">
-                  @csrf
-                  @method('delete')
-                  <button type="submit" class="btn btn-outline-danger btn-sm" onclick="del(event, this)">
-                    <i class="fas fa-trash-alt"></i>
-                  </button>
-                </form>
-              </td>
+              <th scope="col" style="width: 70px;">#</th>
+              <th scope="col">{{ __('Designation') }}</th>
+              <th scope="col" class="text-end" style="width: 140px;">{{ __('Action') }}</th>
             </tr>
+          </thead>
+          <tbody>
+            @forelse ($designations as $designation)
+              <tr>
+                <td class="text-muted fw-bold">{{ $loop->iteration }}</td>
+                <td class="py-3">
+                  <div class="fw-bold fs-4 text-dark mb-1" style="letter-spacing: -0.025em; line-height: 1.2;">
+                    {{ $designation->title }}
+                  </div>
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="badge bg-light text-dark border py-1 px-2">
+                      <i class="fa-solid fa-user-tag me-1 text-secondary"></i>{{ $designation->employees_count ?? 0 }} Assigned
+                    </span>
+                    @if ($designation->status === 1)
+                      <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Active</span>
+                    @elseif ($designation->status === 0)
+                      <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">Disabled</span>
+                    @else
+                      <span class="badge bg-secondary bg-opacity-10 text-secondary">Pending</span>
+                    @endif
+                    <span class="text-muted small">&bull; Created {{ $designation->created_at->diffForHumans() }}</span>
+                  </div>
+                </td>
+                <td class="text-end py-3">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{{ Auth::user()->role->slug === 'super-admin' ? route('designation.edit', $designation->id) : (Auth::user()->role->slug === 'administrator' ? route('admin.designation.edit', $designation->id) : route('hr.designation.edit', $designation->id) ) }}" class="btn btn-outline-dark btn-sm rounded-pill px-3" title="{{ __('Edit') }}">
+                      <i class="fas fa-edit me-1"></i> Edit
+                    </a>
+                    <form action="{{ Auth::user()->role->slug === 'super-admin' ? route('designation.destroy', $designation->id) : (Auth::user()->role->slug === 'administrator' ? route('admin.designation.destroy', $designation->id) : route('hr.designation.destroy', $designation->id) ) }}" method="post" class="d-inline">
+                      @csrf
+                      @method('delete')
+                      <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-2" onclick="del(event, this)" title="{{ __('Delete') }}">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
           @empty
             <tr>
-              <td colspan="6" class="text-center">{{ __('No Data Found') }}</td>
+              <td colspan="3" class="text-center py-5 text-muted">{{ __('No Designations Found') }}</td>
             </tr>
           @endforelse
         </tbody>

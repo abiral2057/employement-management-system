@@ -4,13 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Employee extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+
     protected $fillable = [
         // 'user_id',
         'department_id',
@@ -19,14 +21,25 @@ class Employee extends Model
         'firstname',
         'lastname',
         'unique_id',
+        'avatar',
         'email',
         'phone',
         'address',
         'dob',
+        'joining_date',
+        'emergency_contact_name',
+        'emergency_contact_phone',
+        'employment_type',
         'gender',
         'religion',
         'marital',
         'status'
+    ];
+
+    protected $casts = [
+        'dob' => 'date',
+        'joining_date' => 'date',
+        'status' => 'integer',
     ];
 // Define relationships
     public function user(): BelongsTo {
@@ -73,9 +86,32 @@ class Employee extends Model
         return $this->hasMany(OverTime::class);
     }
 
+    public function overtimes(): HasMany {
+        return $this->hasMany(OverTime::class);
+    }
+
     public function payrolls(): HasMany {
         return $this->hasMany(Payroll::class);
     }
 
+    public function shiftRosters(): HasMany {
+        return $this->hasMany(ShiftRoster::class);
+    }
+
+    public function histories(): HasMany {
+        return $this->hasMany(EmployeeHistory::class)->orderBy('created_at', 'desc');
+    }
+
+    public function documents(): HasMany {
+        return $this->hasMany(EmployeeDocument::class)->orderBy('created_at', 'desc');
+    }
+
+    public function leaveBalances(): HasMany {
+        return $this->hasMany(EmployeeLeaveBalance::class);
+    }
+
+    public function getFullNameAttribute(): string {
+        return trim($this->firstname . ' ' . $this->lastname);
+    }
 }
 

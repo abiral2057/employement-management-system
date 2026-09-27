@@ -5,12 +5,16 @@
 @endsection
 
 @section('header')
-  <div class="d-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3">{{ __('Daily attendance') }}</h1>
-    {{-- <a href="{{ Auth::user()->role->slug === 'super-admin' ? route('attendance.create') : (Auth::user()->role->slug === 'administrator' ? route('admin.attendance.create') : route('moderator.attendance.create') ) }}" class="btn btn-primary">
-      <i class="fas fa-plus"></i>
-      <span class="ps-1">{{ __('Add new') }}</span>
-    </a> --}}
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="display-6 fw-extrabold text-dark tracking-tight mb-1">{{ __('Daily Attendance Sheet') }}</h1>
+      <p class="text-secondary small mb-0">{{ __('Live month-to-date staff attendance tracking, check-in verification, and departure registry') }}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <span class="badge bg-dark text-white px-3 py-2 rounded-pill fs-6">
+        <i class="fa-solid fa-calendar-day text-yellowgreen me-1"></i> {{ now()->format('F Y') }}
+      </span>
+    </div>
   </div>
 @endsection
 
@@ -26,48 +30,43 @@
        
           <thead>
             <tr>
-  
-                <th scope="col" width="10%">Employee Name</th>
-                
-                <th scope="col">Employee Position</th>
-                <th scope="col">Employee ID</th>
+                <th scope="col" style="min-width: 220px;">{{ __('Employee') }}</th>
                 @php
                     $today = today();
                     $dates = [];
-                    
                     for ($i = 1; $i < $today->daysInMonth + 1; ++$i) {
-                        // $dates[] = \Carbon\Carbon::createFromDate($today->year, $today->month, $i)->format('Y-m-d');
                         $dates[] = $i;
                     }
-                    
                 @endphp
                 @foreach ($dates as $date)
-                    <th scope="col">
+                    <th scope="col" class="text-center" style="min-width: 40px;">
                         {{ $date }}
                     </th>
-  
                 @endforeach
-
-                
-  
             </tr>
         </thead>
   
         <tbody>
   
   
-            <form action="{{ Auth::user()->role->slug === 'super-admin' ? route('check.store') : (Auth::user()->role->slug === 'administrator' ? route('admin.check.store') : route('moderator.check.store') ) }}" method="post">
+            <form action="{{ Auth::user()->role->slug === 'super-admin' ? route('check.store') : (Auth::user()->role->slug === 'administrator' ? route('admin.check.store') : (Auth::user()->role->slug === 'hr-manager' ? route('hr.check.store') : route('moderator.check.store')) ) }}" method="post">
                
-                <button type="submit" class="btn btn-success" style="display: flex; margin:10px">submit</button>
+                <button type="submit" class="btn btn-success fw-bold" style="display: flex; margin:10px"><i class="fa-solid fa-floppy-disk me-1"></i> Save Attendance</button>
                 @csrf
                 @foreach ($employees as $employee)
   
                     <input type="hidden" name="employee_id" value="{{ $employee->id }}">
   
                     <tr>
-                        <td class="py-0">{{ $employee->firstname }} {{ $employee->lastname }}</td>
-                        <td>{{ $employee->designation->title }}</td>
-                        <td>{{ $employee->id }}</td>
+                        <td class="py-2">
+                            <a href="{{ route('admin.employee.show', $employee->id) }}" class="fw-bold fs-6 text-dark text-decoration-none text-hover-primary d-block">
+                                {{ $employee->firstname }} {{ $employee->lastname }}
+                            </a>
+                            <div class="small text-muted">
+                                <span class="badge bg-light text-dark border me-1">{{ $employee->unique_id ?? ('#' . $employee->id) }}</span>
+                                <span>{{ optional($employee->designation)->title ?? 'Staff' }}</span>
+                            </div>
+                        </td>
   
   
   

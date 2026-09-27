@@ -1,271 +1,158 @@
-/* ============================================
-   HRMS Navy Blue Theme - Custom Overrides
-   Primary: #1e3a5f | Secondary: #2c5282
-   ============================================ */
+/* ==========================================================
+   HRMS Theme Overrides: Large Typography, Yellowgreen Highlights,
+   Monochrome Black & White Base & Generous Margins
+   ========================================================== */
 
 :root {
-  --bs-primary: #1e3a5f !important;
-  --bs-blue: #1e3a5f !important;
-  --bs-primary-rgb: 30, 58, 95 !important;
-  --navy-dark: #0f2440;
-  --navy-main: #1e3a5f;
-  --navy-light: #2c5282;
-  --navy-accent: #3b82f6;
-  --navy-hover: #253d5a;
+  --color-yellowgreen: #9acd32;
+  --color-yellowgreen-hover: #88b928;
+  --color-yellowgreen-active: #78a620;
+  
+  --bs-primary: #9acd32 !important;
+  --bs-primary-rgb: 154, 205, 50 !important;
 }
 
-/* ---- Buttons ---- */
+/* ---- Primary Buttons: Yellowgreen with High-Contrast Dark Text ---- */
 .btn-primary {
-  background-color: #1e3a5f !important;
-  border-color: #1e3a5f !important;
-  color: #fff !important;
+  background-color: var(--color-yellowgreen) !important;
+  border-color: var(--color-yellowgreen) !important;
+  color: #09090b !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.01em;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
 }
 .btn-primary:hover,
 .btn-primary:focus {
-  background-color: #152c4a !important;
-  border-color: #152c4a !important;
-  color: #fff !important;
+  background-color: var(--color-yellowgreen-hover) !important;
+  border-color: var(--color-yellowgreen-hover) !important;
+  color: #000000 !important;
+  box-shadow: 0 4px 12px rgba(154, 205, 50, 0.3) !important;
 }
 .btn-primary:active,
 .btn-primary.active {
-  background-color: #0f2440 !important;
-  border-color: #0f2440 !important;
-  color: #fff !important;
+  background-color: var(--color-yellowgreen-active) !important;
+  border-color: var(--color-yellowgreen-active) !important;
+  color: #000000 !important;
 }
+
 .btn-outline-primary {
-  color: #1e3a5f !important;
-  border-color: #1e3a5f !important;
+  color: #486809 !important;
+  border-color: var(--color-yellowgreen) !important;
+  border-width: 2px !important;
+  background-color: transparent !important;
+  font-weight: 700 !important;
 }
 .btn-outline-primary:hover,
 .btn-outline-primary:focus {
-  background-color: #1e3a5f !important;
-  color: #fff !important;
+  background-color: var(--color-yellowgreen) !important;
+  color: #09090b !important;
 }
 
 /* ---- Links ---- */
 a {
-  color: #1e3a5f;
+  color: #09090b;
+  text-decoration: none;
+  font-weight: 600;
 }
 a:hover {
-  color: #152c4a;
+  color: #3b5507;
 }
 
-/* ---- Text Utilities ---- */
+/* ---- Highlights & Text Utilities ---- */
 .text-primary {
-  color: #1e3a5f !important;
+  color: #486809 !important;
 }
 .bg-primary {
-  background-color: #1e3a5f !important;
+  background-color: var(--color-yellowgreen) !important;
+  color: #09090b !important;
 }
 
-/* ---- Sidebar Navy Blue Theme ---- */
+/* ---- Sidebar Monochrome with Yellowgreen Accents ---- */
 .sidebar {
-  background-color: #0f2440 !important;
-  color: #fff !important;
+  background-color: #09090b !important;
+  color: #ffffff !important;
 }
 .sidebar .sidebar-brand {
-  background-color: #0a1a30 !important;
-  color: #fff !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-.sidebar .sidebar-brand:hover {
-  background-color: #0a1a30 !important;
-}
-.sidebar .sidebar-nav .sidebar-item .sidebar-link {
-  color: rgba(255, 255, 255, 0.7) !important;
-}
-.sidebar .sidebar-nav .sidebar-item .sidebar-link:hover {
-  color: #fff !important;
-  background-color: rgba(255, 255, 255, 0.08) !important;
+  background-color: #09090b !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #27272a;
 }
 .sidebar .sidebar-nav .sidebar-item.active .sidebar-link,
 .sidebar .sidebar-nav .sidebar-item .sidebar-link.active {
-  color: #fff !important;
-  background-color: #1e3a5f !important;
+  color: #ffffff !important;
+  background-color: #27272a !important;
+  border-left: 3px solid var(--color-yellowgreen) !important;
 }
-.sidebar .sidebar-nav .sidebar-header {
-  color: rgba(255, 255, 255, 0.45) !important;
-}
-
-/* ---- Navbar ---- */
-.navbar {
-  background-color: #fff !important;
-  border-bottom: 1px solid #e8ecf1;
-}
-.navbar-bg {
-  background-color: #fff !important;
+.sidebar .sidebar-nav .sidebar-item.active .sidebar-link i {
+  color: var(--color-yellowgreen) !important;
 }
 
-/* ---- Cards ---- */
+/* ---- Spacious Cards & Layout Margins ---- */
 .card {
-  border: 1px solid #e8ecf1;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e4e4e7 !important;
+  border-radius: 14px !important;
+  margin-bottom: 2rem !important;
+  background-color: #ffffff;
+}
+.card-header {
+  padding: 1.25rem 1.6rem !important;
+}
+.card-body {
+  padding: 1.6rem 1.8rem !important;
 }
 
 /* ---- Form Controls ---- */
 .form-control:focus,
 .form-control-lg:focus {
-  border-color: #1e3a5f !important;
-  box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.15) !important;
+  border-color: var(--color-yellowgreen) !important;
+  box-shadow: 0 0 0 3px rgba(154, 205, 50, 0.25) !important;
 }
 .form-check-input:checked {
-  background-color: #1e3a5f !important;
-  border-color: #1e3a5f !important;
+  background-color: var(--color-yellowgreen) !important;
+  border-color: var(--color-yellowgreen) !important;
 }
 
-/* ---- Dropdown ---- */
+/* ---- Dropdown & Navigation ---- */
 .dropdown-menu {
-  border: 1px solid #e8ecf1;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 .dropdown-item:hover {
-  background-color: #f0f4f8;
-  color: #1e3a5f;
+  background-color: #f4fbe6;
+  color: #3b5507;
 }
 
 /* ---- Tables ---- */
 .table thead th {
-  background-color: #f0f4f8;
-  color: #1e3a5f;
-  font-weight: 600;
-  border-bottom: 2px solid #dee2e6;
+  background-color: #f4f4f5;
+  color: #52525b;
+  font-weight: 750;
+  border-bottom: 1px solid #e4e4e7;
 }
 
-/* ---- Pagination / Active states ---- */
+/* ---- Pagination ---- */
 .page-link {
-  color: #1e3a5f;
+  color: #09090b;
+  border-color: #e4e4e7;
+  font-weight: 650;
 }
 .page-item.active .page-link {
-  background-color: #1e3a5f;
-  border-color: #1e3a5f;
+  background-color: var(--color-yellowgreen) !important;
+  border-color: var(--color-yellowgreen) !important;
+  color: #09090b !important;
+  font-weight: 800;
 }
 
 /* ---- Auth Login Page ---- */
-.auth-wrapper {
-  min-height: 100vh;
-  display: flex;
-}
 .auth-brand {
-  background: linear-gradient(135deg, #0f2440 0%, #1e3a5f 50%, #2c5282 100%);
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 3rem;
-  position: relative;
-  overflow: hidden;
+  background: #09090b;
+  border-right: 1px solid #27272a;
 }
-.auth-brand::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 60%);
-}
-.auth-brand .brand-icon {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
-  opacity: 0.9;
-}
-.auth-brand h2 {
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: #fff;
-}
-.auth-brand p {
-  font-size: 1rem;
-  opacity: 0.8;
-  color: #fff;
-  max-width: 300px;
-  text-align: center;
-  line-height: 1.6;
-}
-.auth-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem;
-  background: #f5f7fb;
-}
-.auth-content .card {
-  border: none;
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-  max-width: 420px;
-  width: 100%;
-}
-.auth-content .card-body {
-  padding: 2.5rem;
-}
-.auth-content h1 {
-  color: #1e3a5f;
-  font-weight: 700;
-}
-.auth-content .lead {
-  color: #6c757d;
-}
-.auth-content .form-label {
-  font-weight: 600;
-  color: #343a40;
-}
-.auth-content .btn-primary {
-  width: 100%;
-  padding: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-}
-
-/* ---- Responsive ---- */
-@media (max-width: 991.98px) {
-  .auth-brand {
-    display: none;
-  }
-  .auth-content {
-    flex: 1;
-  }
-}
-
-/* ---- Login page header improvements ---- */
 .login-brand-logo {
-  width: 80px;
-  height: 80px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-  backdrop-filter: blur(10px);
-}
-.login-brand-logo i {
-  font-size: 2.5rem;
-  color: #fff;
-}
-
-/* ---- Badge styles ---- */
-.badge-primary {
-  background-color: #1e3a5f;
-  color: #fff;
-}
-
-/* ---- Scrollbar ---- */
-.sidebar::-webkit-scrollbar {
-  width: 4px;
-}
-.sidebar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-}
-.sidebar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* ---- Avatar border accent ---- */
-.avatar.border-primary {
-  border: 3px solid #1e3a5f;
+  width: 72px;
+  height: 72px;
+  background: var(--color-yellowgreen);
+  color: #09090b;
+  border-radius: 16px;
 }

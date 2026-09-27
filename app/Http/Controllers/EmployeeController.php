@@ -40,24 +40,56 @@ class EmployeeController extends Controller
      */
     public function store(StoreEmployeeRequest $request)
     {
-        //
         $data = $request->all();
 
-        // Ensure a valid status: the blank form option resolves to '' which
-        // must never reach the NOT NULL column. Default to Currently Employed.
+        // Ensure a valid status: default to Currently Employed
         if (empty($data['status'])) {
             $data['status'] = 1;
         }
 
-        // Auto-generate a unique employee ID if the field was left blank.
+        // Auto-generate a unique employee ID if blank
         if (empty($data['unique_id'])) {
             $data['unique_id'] = 'EMP-' . strtoupper(uniqid());
         }
 
+        // Handle Avatar Upload
+        if ($request->hasFile('avatar')) {
+            $avatar = $request->file('avatar');
+            $filename = time() . '_' . uniqid() . '.' . $avatar->getClientOriginalExtension();
+            $avatar->move(public_path('uploads/avatars'), $filename);
+            $data['avatar'] = 'uploads/avatars/' . $filename;
+        }
+
         $employee = Employee::create($data);
-        if($employee) {
+        if ($employee) {
             $salary = new Salary($data);
             $employee->salary()->save($salary);
+
+            \App\Models\EmployeeHistory::log(
+                $employee->id,
+                'status_change',
+                'Employee Onboarded',
+                "Employee record created for {$employee->firstname} {$employee->lastname} with ID {$employee->unique_id}."
+            );
+
+            // Auto-initialize standard leave balances for current year if leave types exist
+            try {
+                $leaveTypes = \App\Models\LeaveType::where('status', true)->get();
+                $currentYear = (int) date('Y');
+                foreach ($leaveTypes as $lt) {
+                    \App\Models\EmployeeLeaveBalance::firstOrCreate([
+                        'employee_id' => $employee->id,
+                        'leave_type_id' => $lt->id,
+                        'year' => $currentYear,
+                    ], [
+                        'total_allocated' => $lt->annual_quota_days,
+                        'used_days' => 0,
+                        'pending_days' => 0,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                // Ignore if tables not yet populated
+            }
         }
         return back()->with('success', 'Employee created successfully.');
     }
@@ -67,11 +99,12 @@ class EmployeeController extends Controller
      */
     public function show($id)
     {
-        //
         $employee = Employee::with([
             'department', 'designation', 'schedule',
             'salary', 'leaves', 'payrolls', 'attendances',
-            'lateTime', 'overTime',
+            'departs', 'lateTime', 'overTime',
+            'shiftRosters.schedule', 'histories',
+            'documents', 'leaveBalances.leaveType',
         ])->findOrFail($id);
         $departments = Department::all();
         $designations = Designation::all();
@@ -84,7 +117,6 @@ class EmployeeController extends Controller
      */
     public function edit($id)
     {
-        //
         $employee = Employee::findOrFail($id);
         $departments = Department::all();
         $designations = Designation::all();
@@ -95,32 +127,100 @@ class EmployeeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateEmployeeRequest $request, Employee $employee)
+    public function update(UpdateEmployeeRequest $request, $employee)
     {
-        //
+        $targetEmployee = $employee instanceof Employee && $employee->exists
+            ? $employee
+            : Employee::findOrFail($request->route('id') ?? (is_numeric($employee) ? $employee : $employee->id));
+
         $data = $request->all();
 
         if (empty($data['status'])) {
             $data['status'] = 1;
         }
 
-        $employee->update($data);
-        $salary = $employee->salary ?: new Salary();
-        $salary->fill($data);
-        $employee->salary()->save($salary);
+        // Handle Avatar Upload
+        if ($request->hasFile('avatar')) {
+            $avatar = $request->file('avatar');
+            $filename = time() . '_' . uniqid() . '.' . $avatar->getClientOriginalExtension();
+            $avatar->move(public_path('uploads/avatars'), $filename);
+            $data['avatar'] = 'uploads/avatars/' . $filename;
+        }
 
-        // return Redirect::route('admin.employee.edit')->with('success', 'Employee updated successfully');
+        $oldDept = $targetEmployee->department_id;
+        $oldDesig = $targetEmployee->designation_id;
+        $oldSchedule = $targetEmployee->schedule_id;
+
+        $oldSalary = $targetEmployee->salary;
+        $oldBasic = $oldSalary ? $oldSalary->basic : null;
+
+        $targetEmployee->update($data);
+        $salary = $targetEmployee->salary ?: new Salary();
+        $salary->fill($data);
+        $targetEmployee->salary()->save($salary);
+
+        // Audit log salary changes
+        if (isset($data['basic']) && $oldBasic !== null && (float)$oldBasic !== (float)$data['basic']) {
+            \App\Models\EmployeeHistory::log(
+                $targetEmployee->id,
+                'salary_increment',
+                'Salary Revision',
+                "Basic salary revised from € " . number_format((float)$oldBasic, 2) . " to € " . number_format((float)$data['basic'], 2)
+            );
+        }
+
+        // Audit log key changes
+        if (isset($data['department_id']) && $oldDept != $data['department_id']) {
+            $newDept = Department::find($data['department_id']);
+            \App\Models\EmployeeHistory::log(
+                $targetEmployee->id,
+                'department_change',
+                'Department Reassigned',
+                "Transferred to " . ($newDept->title ?? 'New Department')
+            );
+        }
+
+        if (isset($data['designation_id']) && $oldDesig != $data['designation_id']) {
+            $newDesig = Designation::find($data['designation_id']);
+            \App\Models\EmployeeHistory::log(
+                $targetEmployee->id,
+                'promotion',
+                'Designation Updated',
+                "Promoted/Changed to " . ($newDesig->title ?? 'New Designation')
+            );
+        }
+
+        if (isset($data['schedule_id']) && $oldSchedule != $data['schedule_id']) {
+            $newSch = Schedule::find($data['schedule_id']);
+            \App\Models\EmployeeHistory::log(
+                $targetEmployee->id,
+                'shift_change',
+                'Primary Shift Updated',
+                "Shift updated to " . ($newSch->title ?? 'New Schedule')
+            );
+        }
+
         return back()->with('success', 'Employee updated successfully');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified resource from storage (soft archival).
      */
-    public function destroy(Employee $employee)
+    public function destroy($employee)
     {
-        //
-        $employee->delete();
-        return back()->with('success','Employee deleted successfully');
+        $targetEmployee = $employee instanceof Employee && $employee->exists
+            ? $employee
+            : Employee::findOrFail(request()->route('id') ?? (is_numeric($employee) ? $employee : $employee->id));
+
+        \App\Models\EmployeeHistory::log(
+            $targetEmployee->id,
+            'status_change',
+            'Employee Archived',
+            "Employee record archived (soft-deleted) by " . (auth()->check() ? auth()->user()->name : 'Admin') . "."
+        );
+
+        $targetEmployee->delete();
+        return back()->with('success','Employee archived successfully without losing historical payroll or attendance records.');
     }
 
     /**
@@ -166,7 +266,8 @@ class EmployeeController extends Controller
             $employee = Employee::with([
                 'department', 'designation', 'schedule',
                 'salary', 'leaves', 'payrolls', 'attendances',
-                'lateTime', 'overTime',
+                'departs', 'lateTime', 'overTime',
+                'shiftRosters.schedule', 'histories',
             ])->where('unique_id', $query)->first();
 
             // If not found by ID, do a broader name search
@@ -183,7 +284,8 @@ class EmployeeController extends Controller
                     $employee = Employee::with([
                         'department', 'designation', 'schedule',
                         'salary', 'leaves', 'payrolls', 'attendances',
-                        'lateTime', 'overTime',
+                        'departs', 'lateTime', 'overTime',
+                        'shiftRosters.schedule', 'histories',
                     ])->find($results->first()->id);
                     $results = collect();
                 }

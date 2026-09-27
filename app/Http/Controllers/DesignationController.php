@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Designation;
 use App\Http\Requests\StoreDesignationRequest;
 use App\Http\Requests\UpdateDesignationRequest;
+use Illuminate\Http\Request;
 
 class DesignationController extends Controller
 {
@@ -13,8 +14,7 @@ class DesignationController extends Controller
      */
     public function index()
     {
-        //
-        $designations = Designation::all();
+        $designations = Designation::withCount('employees')->get();
         return view('admin.designation.index', compact('designations'));
     }
 
@@ -23,7 +23,6 @@ class DesignationController extends Controller
      */
     public function create()
     {
-        //
         return view('admin.designation.create');
     }
 
@@ -32,7 +31,6 @@ class DesignationController extends Controller
      */
     public function store(StoreDesignationRequest $request)
     {
-        //
         Designation::create($request->all());
         return back()->with('success', 'Designation created successfully!');
     }
@@ -40,9 +38,10 @@ class DesignationController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Designation $designation)
+    public function show($id)
     {
-        //
+        $designation = Designation::findOrFail($id);
+        return view('admin.designation.show', compact('designation'));
     }
 
     /**
@@ -50,18 +49,16 @@ class DesignationController extends Controller
      */
     public function edit($id)
     {
-        //
         $designation = Designation::findOrFail($id);
-
         return view('admin.designation.edit', compact('designation'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateDesignationRequest $request, Designation $designation)
+    public function update(UpdateDesignationRequest $request, $id)
     {
-        //
+        $designation = $id instanceof Designation && $id->exists ? $id : Designation::findOrFail($request->route('id') ?? (is_numeric($id) ? $id : $id->id));
         $designation->update($request->all());
         return back()->with('success', 'Designation updated successfully!');
     }
@@ -69,9 +66,12 @@ class DesignationController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Designation $designation)
+    public function destroy($id)
     {
-        //
+        $designation = $id instanceof Designation && $id->exists ? $id : Designation::findOrFail($id);
+        if ($designation->employees()->count() > 0) {
+            return back()->with('error', 'Cannot delete designation with active employees.');
+        }
         $designation->delete();
         return back()->with('success', 'Designation deleted successfully!');
     }

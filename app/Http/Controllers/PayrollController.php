@@ -2,8 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Payroll;
+use App\Models\Attendance;
 use App\Models\Employee;
+use App\Models\EmployeeHistory;
+use App\Models\OverTime;
+use App\Models\Payroll;
+use App\Models\ShiftRoster;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class PayrollController extends Controller
@@ -11,194 +16,300 @@ class PayrollController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-        $employees = Employee::all();
-       // Calculate salary for each employee based on attendance and formulas
-       return view('admin.payroll.index', ['employees' => $employees]);
-       
+        $selectedYear = $request->input('year', date('Y'));
+        $selectedMonth = $request->input('month', date('m'));
+
+        $employees = Employee::with(['designation', 'department', 'salary'])->where('status', 1)->get();
+
+        // Calculate or retrieve existing payrolls for the period
+        $existingPayrolls = Payroll::where('year', $selectedYear)
+            ->where('month', (int) $selectedMonth)
+            ->get()
+            ->keyBy('employee_id');
+
+        return view('admin.payroll.index', compact('employees', 'existingPayrolls', 'selectedYear', 'selectedMonth'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show the form for creating/generating a new payroll run.
      */
-    public function create()
+    public function create(Request $request)
     {
-    
-         // Fetch employees and dates from your data source
-    $employees = Employee::all(); // Replace 'Employee' with your actual model class
-    $today =today();
-    $dates = [];
+        $selectedYear = $request->input('year', date('Y'));
+        $selectedMonth = $request->input('month', date('m'));
 
-    for ($i = 1; $i <= $today->daysInMonth; ++$i) {
-        $dates[] = $i;
-    }
-    
-    return view('admin.payroll.create', compact('employees','dates'));
-        
+        $carbonPeriod = Carbon::createFromDate($selectedYear, $selectedMonth, 1);
+        $daysInMonth = $carbonPeriod->daysInMonth;
+        $monthStart = $carbonPeriod->copy()->startOfMonth()->toDateString();
+        $monthEnd = $carbonPeriod->copy()->endOfMonth()->toDateString();
+
+        $employees = Employee::with(['designation', 'department', 'salary', 'schedule'])
+            ->where('status', 1)
+            ->get()
+            ->map(function ($emp) use ($monthStart, $monthEnd, $daysInMonth) {
+                // Present attendance count
+                $present = Attendance::where('employee_id', $emp->id)
+                    ->whereBetween('attendance_date', [$monthStart, $monthEnd])
+                    ->where('status', 1)
+                    ->count();
+
+                $absent = max(0, $daysInMonth - $present);
+
+                // Approved Overtime
+                $approvedOvertimes = OverTime::where('employee_id', $emp->id)
+                    ->whereBetween('overtime_date', [$monthStart, $monthEnd])
+                    ->where('status', 'approved')
+                    ->get();
+
+                $otHours = 0;
+                $otPay = 0;
+                foreach ($approvedOvertimes as $ot) {
+                    $otHours += $ot->hours_decimal;
+                    $otPay += (float) $ot->amount;
+                }
+
+                // Extra Shift allowances
+                $extraShifts = ShiftRoster::where('employee_id', $emp->id)
+                    ->whereBetween('shift_date', [$monthStart, $monthEnd])
+                    ->where('shift_type', 'extra')
+                    ->get();
+
+                $extraShiftAllowance = $extraShifts->sum('extra_allowance');
+
+                $sal = $emp->salary;
+                $basic = (float) ($sal->basic ?? 0);
+                $houseRent = (float) ($sal->house_rent ?? 0);
+                $medical = (float) ($sal->medical ?? 0);
+                $transport = (float) ($sal->transport ?? 0);
+                $phone = (float) ($sal->phone_bill ?? 0);
+                $internet = (float) ($sal->internet_bill ?? 0);
+                $special = (float) ($sal->special ?? 0);
+                $bonus = (float) ($sal->bonus ?? 0);
+
+                $gross = $basic + $houseRent + $medical + $transport + $phone + $internet + $special + $bonus + $otPay + $extraShiftAllowance;
+
+                $pf = (float) ($sal->provident_fund ?? 0);
+                $tax = (float) ($sal->income_tax ?? 0);
+                $health = (float) ($sal->health_insurance ?? 0);
+                $life = (float) ($sal->life_insurance ?? 0);
+                $deductions = $pf + $tax + $health + $life;
+
+                $net = max(0, $gross - $deductions);
+
+                return [
+                    'employee' => $emp,
+                    'present' => $present,
+                    'absent' => $absent,
+                    'ot_hours' => round($otHours, 2),
+                    'ot_pay' => round($otPay, 2),
+                    'extra_shift_allowance' => round($extraShiftAllowance, 2),
+                    'basic' => $basic,
+                    'house_rent' => $houseRent,
+                    'medical' => $medical,
+                    'transport' => $transport,
+                    'phone_bill' => $phone,
+                    'internet_bill' => $internet,
+                    'special' => $special,
+                    'bonus' => $bonus,
+                    'gross' => round($gross, 2),
+                    'deductions' => round($deductions, 2),
+                    'net' => round($net, 2),
+                ];
+            });
+
+        return view('admin.payroll.create', compact('employees', 'selectedYear', 'selectedMonth', 'daysInMonth'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Calculate and save/update payroll for employees with lock protection and DB transactions.
      */
-    public function store(Request $request)
+    public function calculatePayroll(Request $request)
     {
-        // foreach ($request->employee_id as $index => $employeeId) {
-        //     $data = [
-        //         'employee_id' => $employeeId,
-        //         'basic' => $request->basic[$index],
-        //         'house_rent' => $request->house_rent[$index],
-        //         'medical' => $request->medical[$index],
-        //         'transport' => $request->transport[$index],
-        //         'special' => $request->special[$index],
-        //         'bonus' => $request->bonus[$index],
-        //         'present' => $request->present[$index],
-        //         'absent' => $request->absent[$index],
-        //         'gross_salary' => $request->gross_salary[$index],
-        //         'provident_fund' => $request->provident_fund[$index],
-        //         'advanced' => $request->advanced[$index],
-        //         'tax' => $request->tax[$index],
-        //         'life_insurance' => $request->life_insurance[$index],
-        //         'health_insurance' => $request->health_insurance[$index],
-        //         'deduction' => $request->deduction[$index],
-        //         'net_salary' => $request->net_salary[$index],
-        //     ];
-    
-        //     // Create a new payroll entry
-        //     Payroll::create($employees);
-        // }
-    
-        // return redirect()->back()->with('success', 'Payroll data has been saved successfully.');
-    }
+        $selectedYear = $request->input('year', date('Y'));
+        $selectedMonth = $request->input('month', date('m'));
+        $defaultDueDate = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->addMonth()->startOfMonth()->addDays(6)->toDateString(); // 7th of next month
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Payroll $payroll)
-    {
-        
-    }
+        $count = 0;
+        $lockedSkipped = 0;
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Payroll $payroll)
-    {
-        //
-    }
+        if (isset($request->payroll) && is_array($request->payroll)) {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($request, $selectedYear, $selectedMonth, $defaultDueDate, &$count, &$lockedSkipped) {
+                foreach ($request->payroll as $employeeId => $data) {
+                    $employee = Employee::find($employeeId);
+                    if (!$employee) continue;
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Payroll $payroll)
-    {
-        //
-    }
+                    // Protect locked payroll records
+                    $existing = Payroll::where('employee_id', $employeeId)
+                        ->where('year', $selectedYear)
+                        ->where('month', (int) $selectedMonth)
+                        ->first();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Payroll $payroll)
-    {
-        //
-    }
+                    if ($existing && !empty($existing->is_locked)) {
+                        $lockedSkipped++;
+                        continue;
+                    }
 
-    public function grossSalary() {
-        $employees = Employee::all();
-        return view('admin.payroll.gross', compact('employees'));
-    }
+                    $basic = (float) ($data['basic'] ?? 0);
+                    $houseRent = (float) ($data['house_rent'] ?? 0);
+                    $medical = (float) ($data['medical'] ?? 0);
+                    $transport = (float) ($data['transport'] ?? 0);
+                    $phone = (float) ($data['phone_bill'] ?? 0);
+                    $internet = (float) ($data['internet_bill'] ?? 0);
+                    $special = (float) ($data['special'] ?? 0);
+                    $bonus = (float) ($data['bonus'] ?? 0);
+                    $otHours = (float) ($data['overtime_hours'] ?? 0);
+                    $otPay = (float) ($data['overtime_pay'] ?? 0);
 
-    public function calculatePayroll(Request $request) {
-        // dd($request);
-        if (isset($request->payroll)) {
-            foreach ($request->payroll as $employeeId => $payrollData) {
-                // Get the current year and month
-                $currentYear = date('Y');
-                $currentMonth = date('m');
-                
-                // foreach ($payrollData as $year => $yearData) {
-                    // foreach ($yearData as $month => $payrollFields) {
-                        if ($employee = Employee::whereId($employeeId)->first()) {
-                            $data = new Payroll();
-                            $data->employee_id = $employeeId;
-                            
-                            // Use the current year and month for the entry
-                            $data->year = $currentYear;
-                            $data->month = $currentMonth;
-                            
-                            // Process individual payroll fields
-                            // $data->basic = $payrollFields['basic'];
-                            // $data->house_rent = $payrollFields['house_rent'];
-                            // $data->medical = $payrollFields['medical'];
-                            $data->basic = $payrollData['basic'];
-                            $data->house_rent = $payrollData['house_rent'];
-                            $data->medical = $payrollData['medical'];
-                            $data->transport = $payrollData['transport'];
-                            $data->phone_bill = $payrollData['phone_bill'];
-                            $data->internet_bill = $payrollData['internet_bill'];
-                            $data->special = $payrollData['special'];
-                            // $data->bonus = $payrollData['bonus'];
-                            $data->days_present = $payrollData['days_present'];
-                            $data->days_absent = $payrollData['days_absent'];
-                            $data->gross_salary = $payrollData['gross_salary'];
-                            $data->provident_fund = $payrollData['provident_fund'];
-                            // $data->advanced = $payrollData['advanced'];
-                            $data->income_tax = $payrollData['income_tax'];
-                            $data->life_insurance = $payrollData['life_insurance'];
-                            $data->health_insurance = $payrollData['health_insurance'];
-                            $data->deduction = $payrollData['deduction'];
-                            $data->net_salary = $payrollData['net_salary'];
-                            // Add more fields as needed
-                            
-                            // Additional salary calculation logic can be added here
-                            
-                            $data->save();
-                        }
-                    // }
-                // }
-            }
+                    $gross = $basic + $houseRent + $medical + $transport + $phone + $internet + $special + $bonus + $otPay;
+
+                    $pf = (float) ($data['provident_fund'] ?? 0);
+                    $tax = (float) ($data['income_tax'] ?? 0);
+                    $health = (float) ($data['health_insurance'] ?? 0);
+                    $life = (float) ($data['life_insurance'] ?? 0);
+                    $deductions = $pf + $tax + $health + $life;
+
+                    $net = max(0, $gross - $deductions);
+
+                    // Update or create payroll record without duplicating
+                    $payroll = Payroll::updateOrCreate(
+                        [
+                            'employee_id' => $employeeId,
+                            'year' => $selectedYear,
+                            'month' => (int) $selectedMonth,
+                        ],
+                        [
+                            'basic' => $basic,
+                            'house_rent' => $houseRent,
+                            'medical' => $medical,
+                            'transport' => $transport,
+                            'phone_bill' => $phone,
+                            'internet_bill' => $internet,
+                            'special' => $special,
+                            'bonus' => $bonus,
+                            'overtime_hours' => $otHours,
+                            'overtime_pay' => $otPay,
+                            'days_present' => $data['days_present'] ?? null,
+                            'days_absent' => $data['days_absent'] ?? null,
+                            'gross_salary' => $gross,
+                            'provident_fund' => $pf,
+                            'income_tax' => $tax,
+                            'health_insurance' => $health,
+                            'life_insurance' => $life,
+                            'deduction' => $deductions,
+                            'net_salary' => $net,
+                            'status' => 'approved',
+                            'due_date' => $defaultDueDate,
+                        ]
+                    );
+
+                    // Initialize payment status if new
+                    if (!$payroll->payment_status) {
+                        $payroll->payment_status = 'unpaid';
+                        $payroll->paid_amount = 0.00;
+                        $payroll->save();
+                    }
+
+                    $count++;
+                }
+            });
         }
-        return back();
+
+        $msg = "Payroll computed successfully for {$count} employee(s).";
+        if ($lockedSkipped > 0) {
+            $msg .= " ({$lockedSkipped} record(s) were locked and preserved unchanged).";
+        }
+
+        return redirect()->route('payroll.due')->with('success', $msg);
     }
 
-    public function sheetReport()
+    /**
+     * Lock or Unlock a finalized payroll record to prevent accidental modifications.
+     */
+    public function toggleLock($id)
     {
-        $employees = Employee::all();
-        $months = [
-            1 => 'January',
-            2 => 'February',
-            // ... Define months for all 12 months
+        $payroll = Payroll::findOrFail($id);
+        $payroll->is_locked = !$payroll->is_locked;
+        $payroll->save();
+
+        $action = $payroll->is_locked ? 'Locked' : 'Unlocked';
+        EmployeeHistory::log(
+            $payroll->employee_id,
+            'salary_update',
+            "Payroll {$action}",
+            "Payroll record for {$payroll->month}/{$payroll->year} was {$action} by " . (auth()->user()->name ?? 'Admin') . "."
+        );
+
+        return back()->with('success', "Payroll record for {$payroll->employee->firstname} {$payroll->employee->lastname} ({$payroll->month}/{$payroll->year}) is now {$action}.");
+    }
+
+    public function sheetReport(Request $request)
+    {
+        $selectedYear = $request->input('year', date('Y'));
+        $selectedMonth = $request->input('month', date('m'));
+
+        $employees = Employee::with(['department', 'designation'])->where('status', 1)->get();
+        $salaryData = Payroll::where('year', $selectedYear)
+            ->where('month', (int) $selectedMonth)
+            ->get()
+            ->keyBy('employee_id');
+
+        return view('admin.payroll.report', compact('employees', 'salaryData', 'selectedYear', 'selectedMonth'));
+    }
+
+    /**
+     * Export payroll sheet as CSV.
+     */
+    public function exportCsv(Request $request)
+    {
+        $selectedYear = $request->input('year', date('Y'));
+        $selectedMonth = $request->input('month', date('m'));
+
+        $employees = Employee::with(['department', 'designation'])->where('status', 1)->get();
+        $salaryData = Payroll::where('year', $selectedYear)
+            ->where('month', (int) $selectedMonth)
+            ->get()
+            ->keyBy('employee_id');
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"payroll_sheet_{$selectedYear}_{$selectedMonth}.csv\"",
         ];
 
-        return view('admin.payroll.report', compact('employees', 'months'));
+        $callback = function () use ($employees, $salaryData) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, [
+                'Employee ID', 'Name', 'Department', 'Designation',
+                'Basic', 'Gross Salary', 'Total Deductions', 'Net Salary',
+                'Payment Status', 'Paid Amount', 'Balance Due', 'Locked'
+            ]);
+
+            foreach ($employees as $emp) {
+                $pay = $salaryData->get($emp->id);
+                fputcsv($handle, [
+                    $emp->unique_id,
+                    $emp->firstname . ' ' . $emp->lastname,
+                    optional($emp->department)->title ?? '—',
+                    optional($emp->designation)->title ?? '—',
+                    $pay ? $pay->basic : 0,
+                    $pay ? $pay->gross_salary : 0,
+                    $pay ? $pay->deduction : 0,
+                    $pay ? $pay->net_salary : 0,
+                    $pay ? ucfirst($pay->payment_status ?? 'unpaid') : 'Not Run',
+                    $pay ? $pay->paid_amount : 0,
+                    $pay ? $pay->balance_due : 0,
+                    $pay && $pay->is_locked ? 'Yes' : 'No',
+                ]);
+            }
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function generateReport(Request $request)
     {
-        $selectedYear = $request->input('year');
-        $selectedMonth = $request->input('month');
-        $employees = Employee::all();
-        $salaryData = [];
-
-        if ($selectedYear && $selectedMonth) {
-            $salaryData = Payroll::whereIn('employee_id', $employees->pluck('id'))
-                ->whereYear('year', $selectedYear)
-                ->whereMonth('month', $selectedMonth)
-                ->get();
-        }
-
-        // if ($selectedYear && $selectedMonth) {
-        //     $salaryData = Payroll::whereYear('year', $selectedYear)
-        //         ->whereMonth('month', $selectedMonth)
-        //         ->with('employee') // Load the employee relationship
-        //         ->get();
-    
-        //     return view('admin.payroll.report', compact('salaryData', 'selectedYear', 'selectedMonth'));
-        // }
-    
-        // return view('admin.payroll.report');
-
-        return view('admin.payroll.report', compact('employees', 'selectedYear', 'selectedMonth', 'salaryData'));
+        return $this->sheetReport($request);
     }
 }

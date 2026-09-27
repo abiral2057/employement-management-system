@@ -22,61 +22,50 @@
         <h5 class="card-title mb-0">{{ __('Employees Daily Attendance') }}</h5>
       </div>
       <div class="table-responsive">
-        <table class="table table-hover my-0 table-bordered data-table">   
-          <thead>
+        <table class="table table-hover align-middle my-0 data-table">   
+          <thead class="table-light text-uppercase small text-muted">
             <tr>
-  
-                <th scope="col" width="200px">Employee Name</th>
-                
-                <th scope="col" width="200px">Employee Position</th>
-                <th scope="col" width="100px">Basic Salary</th>
-                <th scope="col" width="100px">House rent</th>
-                <th scope="col" width="100px">Medical Allowance</th>
-                <th scope="col" width="100px">Transport Allowance</th>
-                <th scope="col" width="100px">special Allowance</th>
-                <th scope="col" width="100px">Gross Salary</th>
-                {{-- <th scope="col">Overtime</th>
-                <th scope="col">Provident Fund</th>
-                <th scope="col">Advanced</th>
-                <th scope="col">Tax</th>
-                <th scope="col">Deduction</th>
-                <th scope="col">Net Salary</th> --}}
-            
+                <th scope="col" style="width: 50px;">#</th>
+                <th scope="col">{{ __('Employee') }}</th>
+                <th scope="col">{{ __('Basic & Allowances') }}</th>
+                <th scope="col" class="text-end" style="width: 180px;">{{ __('Gross Salary') }}</th>
             </tr>
         </thead>
-  
         <tbody>
-
-            <form action="" method="post">
-                <button type="submit" class="btn btn-success" style="display: flex; margin:10px">submit</button>
-                @csrf
-                @foreach ($employees as $index => $employee)
-                  <tr class="employee">
-                     <input type="hidden" name="employee_id" value="{{ $employee->id }}">
-                     <td>{{ $employee->firstname . ' ' . $employee->lastname }}</td>
-                     <td>{{ $employee->department->title }}</td>
-                     <td>
-                      <input type="number" id="basic{{ $index }}" class="form-control basic" value="{{ $employee->salary['basic'] }}" readonly />
-                     </td>
-                     <td>
-                      <input type="number" id="rent{{ $index }}" class="form-control rent" value="{{ $employee->salary['house_rent'] }}" readonly />
-                     </td>
-                     <td></td>
-                     <td></td>
-                     <td></td>
-                     
-                     <td>
-                        <input type="number" id="gross{{ $index }}" class="form-control result" value="{{ $employee['gross_salary'] }}" readonly />
-                        {{-- <p class="gross-salary">Gross Salary: <span class="result">{{ $employee['gross_salary'] }}</span></p> --}}
-                     </td>
-                  </tr>
-                  @endforeach
-  
-            </form>
-  
-  
+            @foreach ($employees as $index => $employee)
+              <tr class="employee">
+                 <td class="text-muted fw-bold">{{ $loop->iteration }}</td>
+                 <td>
+                   <div class="d-flex align-items-center gap-3">
+                     <div class="avatar-mono flex-shrink-0" style="width:40px;height:40px;background:#09090b;color:#ffffff;font-size:.85rem;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                       {{ strtoupper(substr($employee->firstname ?? 'E', 0, 1)) }}{{ strtoupper(substr($employee->lastname ?? 'M', 0, 1)) }}
+                     </div>
+                     <div>
+                       <a href="{{ route('admin.employee.show', $employee->id ?? 1) }}" class="fw-bold fs-5 text-dark text-decoration-none text-hover-primary d-block">
+                         {{ $employee->firstname }} {{ $employee->lastname }}
+                       </a>
+                       <div class="small text-muted">
+                         <span class="badge bg-light text-dark border me-1">{{ $employee->unique_id ?? '—' }}</span>
+                         <span>{{ optional($employee->department)->title ?? 'General' }}</span>
+                       </div>
+                     </div>
+                   </div>
+                 </td>
+                 <td>
+                   <div class="d-flex align-items-center gap-2 flex-wrap">
+                     <span class="fw-bold fs-6 text-primary">€ {{ number_format($employee->salary['basic'] ?? 0, 2) }}</span>
+                     <span class="badge bg-light text-dark border">Basic</span>
+                     @if(isset($employee->salary['house_rent']) && $employee->salary['house_rent'] > 0)
+                       <span class="badge bg-light text-dark border">+ Rent: €{{ number_format($employee->salary['house_rent'], 2) }}</span>
+                     @endif
+                   </div>
+                 </td>
+                 <td class="text-end">
+                    <span class="fw-bold fs-4 text-success">€ {{ number_format($employee['gross_salary'] ?? 0, 2) }}</span>
+                 </td>
+              </tr>
+            @endforeach
         </tbody>
-  
         </table>
       </div>
       

@@ -24,23 +24,20 @@
             <table class="table table-bordered table-striped data-table">
               <thead>
                 <tr>
-                  <th>{{ __('Employee Name') }}</th>
-                  <th>{{ __('Employee Position') }}</th>
-                  <th>{{ __('Employee ID') }}</th>
+                  <th style="min-width: 220px;">{{ __('Employee') }}</th>
                   @php 
                     $today = today();
                     $dates = [];
                     for ($i = 1; $i < $today->daysInMonth + 1; ++$i) {
-                      // $dates[] = \Carbon\Carbon::createFromDate($today->year, $today->month, $i)->format('Y-m-d');
                       $dates[] = $i;
                     }
                   @endphp
 
                   @foreach ($dates as $date)
-                    <th>{{ $date }}</th>
+                    <th class="text-center" style="min-width: 38px;">{{ $date }}</th>
                   @endforeach
-                  <th>{{ __('Total Presents') }}t</th>
-                  <th>{{ __('Total Absents') }}</th>
+                  <th class="text-center text-success">{{ __('Presents') }}</th>
+                  <th class="text-center text-danger">{{ __('Absents') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -51,9 +48,15 @@
                 @foreach ($employees as $employee)
                   <input type="hidden" name="employee_id" value="{{ $employee->id }}">
                     <tr>
-                      <td>{{ $employee->firstname }} {{ $employee->lastname }}</td>
-                      <td>{{ $employee->designation->title }}</td>
-                      <td>{{ $employee->id }}</td>
+                      <td class="py-2">
+                        <a href="{{ route('admin.employee.show', $employee->id) }}" class="fw-bold fs-6 text-dark text-decoration-none text-hover-primary d-block">
+                          {{ $employee->firstname }} {{ $employee->lastname }}
+                        </a>
+                        <div class="small text-muted">
+                          <span class="badge bg-light text-dark border me-1">{{ $employee->unique_id ?? ('#' . $employee->id) }}</span>
+                          <span>{{ optional($employee->designation)->title ?? 'Staff' }}</span>
+                        </div>
+                      </td>
                       @for ($i = 1; $i < $today->daysInMonth + 1; ++$i)
                         @php
                           $date_picker = \Carbon\Carbon::createFromDate($today->year, $today->month, $i)->format('Y-m-d');

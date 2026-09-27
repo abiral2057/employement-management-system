@@ -15,17 +15,23 @@
 
 	<link href="{{asset('css/app.css')}}" rel="stylesheet">
 	<link href="{{asset('css/satoshi.css')}}" rel="stylesheet">
+	<link href="{{asset('css/typography.css')}}" rel="stylesheet">
 	<link href="{{asset('css/custom.css')}}" rel="stylesheet">
 </head>
 
 <body>
 	<div class="auth-wrapper">
-		<!-- Navy Blue Brand Panel -->
+		<!-- Monochrome Graphic Brand Panel -->
 		<div class="auth-brand d-none d-lg-flex">
 			<div class="login-brand-logo">
-				<i class="fas fa-users-gear"></i>
+				<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#09090b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<rect x="3" y="3" width="7" height="7"></rect>
+					<rect x="14" y="3" width="7" height="7"></rect>
+					<rect x="14" y="14" width="7" height="7"></rect>
+					<rect x="3" y="14" width="7" height="7"></rect>
+				</svg>
 			</div>
-			<h2>{{ config('app.name') }}</h2>
+			<h2>{{ config('app.name', 'HRMS PRO') }}</h2>
 			<p>Streamline your workforce management with our comprehensive HRMS solution.</p>
 			<div class="mt-4" style="display: flex; gap: 1.5rem; opacity: 0.7;">
 				<div class="text-center">

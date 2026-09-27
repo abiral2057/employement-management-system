@@ -6,147 +6,74 @@ use App\Models\Attendance;
 use App\Models\Check;
 use App\Models\Depart;
 use App\Models\Employee;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class CheckController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Check $check)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Check $check)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Check $check)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Check $check)
-    {
-        //
-    }
-
-    
-    
-
     public function CheckStore(Request $request)
     {
-        if (isset($request->attd)) {
-            foreach ($request->attd as $keys => $values) {
-                foreach ($values as $key => $value) {
-                    if ($employee = Employee::whereId(request('employee_id'))->first()) {
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
+            if (isset($request->attd)) {
+                foreach ($request->attd as $dateKey => $empValues) {
+                    foreach ($empValues as $empId => $value) {
+                        $employee = Employee::with('schedule')->find($empId);
+                        if ($employee) {
+                            $isFriday = Carbon::createFromFormat('Y-m-d', $dateKey)->isFriday();
+                            $checkboxValue = $request->has("attd.$dateKey.$empId") ? 1 : 0;
 
-                        $isFriday = \Carbon\Carbon::createFromFormat('Y-m-d', $keys)->isFriday();
+                            $existing = Attendance::where('attendance_date', $dateKey)
+                                ->where('employee_id', $empId)
+                                ->where('type', 0)
+                                ->first();
 
-                        // $checkboxValue = isset($value) ? 1 : 0;
-                        // $checkboxValue = $request->has("attd.$keys.$key") ? 1 : ($isFriday ? null : 0);
-                        $checkboxValue = $request->has("attd.$keys.$key") ? 1 : 0;
-                        if (
-                            !Attendance::whereAttendance_date($keys)
-                                ->whereEmployee_id($key)
-                                ->whereType(0)
-                                // ->whereStatus(NULL)
-                                ->first()
-                        ) {
-                            $data = new Attendance();
-                            
-                            $data->employee_id = $key;
-                            $emp_req = Employee::whereId($data->employee_id)->first();
-                            $data->attendance_time = date('H:i:s', strtotime($emp_req->schedule->first()->time_in));
-                            $data->attendance_date = $keys;
-
-                            // if ($emp_req->schedule->first()->time_in <= $data->attendance_time) {
-                            //     $data->status = 1; // On time or late
-                            // } else {
-                            //     $data->status = 0; // Early or missed
-                            // }
-                            // $data->status = $checkboxValue;
-                            $data->status = $isFriday && $checkboxValue === 0 ? null : $checkboxValue;
-
-                            $data->save();
-                        }
-                    }
-                }
-            }
-        }
-        if (isset($request->depart)) {
-            foreach ($request->depart as $keys => $values) {
-                foreach ($values as $key => $value) {
-                    if ($employee = Employee::whereId(request('employee_id'))->first()) {
-                        if (
-                            !Depart::whereDepart_date($keys)
-                                ->whereEmployee_id($key)
-                                ->whereType(1)
-                                ->first()
-                        ) {
-                            $data = new Depart();
-                            $data->employee_id = $key;
-                            $emp_req = Employee::whereId($data->employee_id)->first();
-                            $data->depart_time = $emp_req->schedule->first()->time_out;
-                            $data->depart_date = $keys;
-                            // if ($employee->schedule->first()->time_out <= $data->depart_time) {
-                            //     $data->status = 1;
-                                
-                            // }
-                            if ($employee->schedule->first()->time_out <= $data->depart_time) {
-                                $data->status = 1;
-                            } else {
-                                $data->status = null; // Set to null when not met
-    
+                            if (!$existing) {
+                                $data = new Attendance();
+                                $data->employee_id = $empId;
+                                $timeIn = optional($employee->schedule)->time_in ?? '09:00:00';
+                                $data->attendance_time = date('H:i:s', strtotime($timeIn));
+                                $data->attendance_date = $dateKey;
+                                $data->type = 0;
+                                $data->status = $isFriday && $checkboxValue === 0 ? null : $checkboxValue;
+                                $data->save();
                             }
-                            
-                            $data->save();
                         }
                     }
                 }
             }
-        }
-        // flash()->success('Success', 'You have successfully submited the attendance !');
-        return back();
+
+            if (isset($request->depart)) {
+                foreach ($request->depart as $dateKey => $empValues) {
+                    foreach ($empValues as $empId => $value) {
+                        $employee = Employee::with('schedule')->find($empId);
+                        if ($employee) {
+                            $existing = Depart::where('depart_date', $dateKey)
+                                ->where('employee_id', $empId)
+                                ->where('type', 1)
+                                ->first();
+
+                            if (!$existing) {
+                                $data = new Depart();
+                                $data->employee_id = $empId;
+                                $timeOut = optional($employee->schedule)->time_out ?? '17:00:00';
+                                $data->depart_time = $timeOut;
+                                $data->depart_date = $dateKey;
+                                $data->type = 1;
+                                $data->status = 1;
+                                $data->save();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        return back()->with('success', 'Attendance records updated successfully!');
     }
+
     public function sheetReport()
     {
-
-    return view('admin.attendance.report')->with(['employees' => Employee::all()]);
+        $employees = Employee::with(['department', 'designation', 'schedule'])->where('status', 1)->get();
+        return view('admin.attendance.report', compact('employees'));
     }
 }

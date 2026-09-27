@@ -19,34 +19,37 @@
       <div class="dropdown-menu py-0" aria-labelledby="itemsDropdown">
         <div class="dropdown-menu-header">{{ __('Add New Opion') }}</div>
         <div class="list-group">
-          <a href="{{ route('department.create') }}" class="list-group-item">
+          @php $roleSlug = Auth::check() ? Auth::user()->role->slug : ''; @endphp
+          <a href="{{ $roleSlug === 'super-admin' ? route('department.create') : ($roleSlug === 'administrator' ? route('admin.department.create') : route('hr.department.create')) }}" class="list-group-item">
             <i class="fas fa-plus align-middle"></i>
             <span class="text-dark ps-2">{{ __('Department') }}</span>
           </a>
-          <a href="{{ route('designation.create') }}" class="list-group-item">
+          <a href="{{ $roleSlug === 'super-admin' ? route('designation.create') : ($roleSlug === 'administrator' ? route('admin.designation.create') : route('hr.designation.create')) }}" class="list-group-item">
             <i class="fas fa-plus align-middle"></i>
             <span class="text-dark ps-2">{{ __('Designation') }}</span>
           </a>
-          <a href="{{ route('employee.create') }}" class="list-group-item">
+          <a href="{{ $roleSlug === 'super-admin' ? route('employee.create') : ($roleSlug === 'administrator' ? route('admin.employee.create') : route('hr.employee.create')) }}" class="list-group-item">
             <i class="fas fa-plus align-middle"></i>
             <span class="text-dark ps-2">{{ __('Employee') }}</span>
           </a>
-          <a href="{{ route('attendance.create') }}" class="list-group-item">
+          <a href="{{ $roleSlug === 'super-admin' ? route('attendance.create') : ($roleSlug === 'administrator' ? route('admin.attendance.create') : ($roleSlug === 'hr-manager' ? route('hr.attendance.index') : route('moderator.attendance.index'))) }}" class="list-group-item">
             <i class="fas fa-plus align-middle"></i>
             <span class="text-dark ps-2">{{ __('Attendance') }}</span>
           </a>
-          <a href="{{ route('leaves.create') }}" class="list-group-item">
+          <a href="{{ $roleSlug === 'super-admin' ? route('leaves.create') : ($roleSlug === 'administrator' ? route('admin.leaves.create') : route('hr.leaves.create')) }}" class="list-group-item">
             <i class="fas fa-plus align-middle"></i>
             <span class="text-dark ps-2">{{ __('Leave') }}</span>
           </a>
-          <a href="{{ route('payroll.create') }}" class="list-group-item">
+          <a href="{{ $roleSlug === 'super-admin' ? route('payroll.create') : ($roleSlug === 'administrator' ? route('admin.payroll.create') : ($roleSlug === 'hr-manager' ? route('hr.payroll.create') : route('manager.payroll.create'))) }}" class="list-group-item">
             <i class="fas fa-plus align-middle"></i>
             <span class="text-dark ps-2">{{ __('Payroll') }}</span>
           </a>
-          <a href="{{ route('user.create') }}" class="list-group-item">
+          @if ($roleSlug === 'super-admin' || $roleSlug === 'administrator')
+          <a href="{{ $roleSlug === 'super-admin' ? route('user.create') : route('admin.users.create') }}" class="list-group-item">
             <i class="fas fa-plus align-middle"></i>
             <span class="text-dark ps-2">{{ __('User') }}</span>
           </a>
+          @endif
         </div>
       </div>
     </li>
@@ -55,65 +58,63 @@
   <div class="navbar-collapse collapse">
     <ul class="navbar-nav navbar-align">
       <li class="nav-item dropdown">
-        <a class="nav-icon dropdown-toggle" href="#" id="alertsDropdown" data-bs-toggle="dropdown">
+        <a class="nav-icon dropdown-toggle" href="#" id="alertsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
           <div class="position-relative">
             <i class="align-middle" data-feather="bell"></i>
-            <span class="indicator">4</span>
+            @if(isset($navbarUnreadCount) && $navbarUnreadCount > 0)
+              <span class="indicator bg-danger">{{ $navbarUnreadCount }}</span>
+            @endif
           </div>
         </a>
-        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end py-0" aria-labelledby="alertsDropdown">
-          <div class="dropdown-menu-header">2 New Notifications</div>
-          <div class="list-group">
-            <a href="#" class="list-group-item">
-              <div class="row g-0 align-items-center">
-                <div class="col-2">
-                  <i class="text-danger" data-feather="alert-circle"></i>
-                </div>
-                <div class="col-10">
-                  <div class="text-dark">Update completed</div>
-                  <div class="text-muted small mt-1">Restart server 12 to complete the update.</div>
-                  <div class="text-muted small mt-1">30m ago</div>
-                </div>
-              </div>
-            </a>
-            <a href="#" class="list-group-item">
-              <div class="row g-0 align-items-center">
-                <div class="col-2">
-                  <i class="text-warning" data-feather="bell"></i>
-                </div>
-                <div class="col-10">
-                  <div class="text-dark">Lorem ipsum</div>
-                  <div class="text-muted small mt-1">Aliquam ex eros, imperdiet vulputate hendrerit et.</div>
-                  <div class="text-muted small mt-1">2h ago</div>
-                </div>
-              </div>
-            </a>
-            <a href="#" class="list-group-item">
-              <div class="row g-0 align-items-center">
-                <div class="col-2">
-                  <i class="text-primary" data-feather="home"></i>
-                </div>
-                <div class="col-10">
-                  <div class="text-dark">Login from 192.186.1.8</div>
-                  <div class="text-muted small mt-1">5h ago</div>
-                </div>
-              </div>
-            </a>
-            <a href="#" class="list-group-item">
-              <div class="row g-0 align-items-center">
-                <div class="col-2">
-                  <i class="text-success" data-feather="user-plus"></i>
-                </div>
-                <div class="col-10">
-                  <div class="text-dark">New connection</div>
-                  <div class="text-muted small mt-1">Christina accepted your request.</div>
-                  <div class="text-muted small mt-1">14h ago</div>
-                </div>
-              </div>
-            </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end py-0 shadow border" aria-labelledby="alertsDropdown" style="min-width: 320px; max-width: 380px;">
+          <div class="dropdown-menu-header d-flex justify-content-between align-items-center py-2 px-3 bg-dark text-white">
+            <span class="fw-bold">{{ isset($navbarUnreadCount) && $navbarUnreadCount > 0 ? $navbarUnreadCount . ' New Notifications' : 'Notifications' }}</span>
+            @if(isset($navbarUnreadCount) && $navbarUnreadCount > 0)
+              <form action="{{ route('notifications.clear-all') }}" method="POST" class="d-inline">
+                @csrf
+                <button type="submit" class="btn btn-sm btn-link text-white text-decoration-none p-0" style="font-size: 0.75rem;" title="Mark all as read">
+                  <i class="fa-solid fa-check-double me-1"></i>Mark Read
+                </button>
+              </form>
+            @endif
           </div>
-          <div class="dropdown-menu-footer">
-            <a href="#" class="text-muted">Show all notifications</a>
+          <div class="list-group list-group-flush" style="max-height: 360px; overflow-y: auto;">
+            @forelse($navbarNotifications ?? [] as $item)
+              <a href="{{ $item['action_url'] }}" class="list-group-item list-group-item-action py-3 px-3 {{ !$item['is_read'] ? 'bg-light' : '' }}">
+                <div class="d-flex align-items-start gap-2">
+                  <div class="flex-shrink-0 mt-1">
+                    <span class="badge rounded-circle p-2 bg-{{ $item['color'] }} bg-opacity-10 text-{{ $item['color'] }}">
+                      <i class="{{ $item['icon'] }}" style="font-size: 0.85rem;"></i>
+                    </span>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="fw-bold text-dark small">{{ $item['title'] }}</div>
+                      <span class="badge bg-{{ $item['color'] }} bg-opacity-10 text-{{ $item['color'] }} border border-{{ $item['color'] }} py-0 px-1" style="font-size: 0.65rem;">
+                        {{ $item['badge'] }}
+                      </span>
+                    </div>
+                    <div class="text-secondary small mt-1" style="font-size: 0.8rem; line-height: 1.3;">
+                      {{ $item['message'] }}
+                    </div>
+                    <div class="text-muted small mt-1" style="font-size: 0.72rem;">
+                      <i class="fa-regular fa-clock me-1"></i>{{ $item['time_ago'] }}
+                    </div>
+                  </div>
+                </div>
+              </a>
+            @empty
+              <div class="p-4 text-center text-muted">
+                <i class="fa-regular fa-bell-slash fa-2x mb-2 opacity-50"></i>
+                <div class="small fw-semibold">No new notifications</div>
+                <div class="small text-muted" style="font-size: 0.75rem;">You are completely caught up!</div>
+              </div>
+            @endforelse
+          </div>
+          <div class="dropdown-menu-footer text-center py-2 bg-light border-top">
+            <a href="{{ route('notifications.index') }}" class="text-primary fw-bold small text-decoration-none">
+              <i class="fa-solid fa-list me-1"></i>{{ __('View Notification Center') }} &rarr;
+            </a>
           </div>
         </div>
       </li>
@@ -190,11 +191,11 @@
           <img src="{{ asset('img/avatars/dummy.png') }}" class="avatar img-fluid rounded me-1" alt="Charles Hall" /> <span class="text-dark">{{ Auth::user()->name }}</span>
         </a>
         <div class="dropdown-menu dropdown-menu-end">
-          <a class="dropdown-item" href="javascript:void(0)"><i class="align-middle me-1" data-feather="user"></i> Profile</a>
-          <a class="dropdown-item" href="javascript:void(0)"><i class="align-middle me-1" data-feather="pie-chart"></i> Analytics</a>
+          <a class="dropdown-item" href="{{ route('profile.edit') }}"><i class="align-middle me-1" data-feather="user"></i> {{ __('Profile') }}</a>
+          <a class="dropdown-item" href="{{ route('payroll.transactions') }}"><i class="align-middle me-1" data-feather="dollar-sign"></i> {{ __('Transactions') }}</a>
           <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="javascript:void(0)"><i class="align-middle me-1" data-feather="settings"></i> Settings & Privacy</a>
-          <a class="dropdown-item" href="javascript:void(0)"><i class="align-middle me-1" data-feather="help-circle"></i> Help Center</a>
+          <a class="dropdown-item" href="{{ route('profile.edit') }}"><i class="align-middle me-1" data-feather="settings"></i> {{ __('Account Settings') }}</a>
+          <a class="dropdown-item" href="javascript:void(0)"><i class="align-middle me-1" data-feather="help-circle"></i> {{ __('Help Center') }}</a>
           <div class="dropdown-divider"></div>
           {{-- <a class="dropdown-item" href="javascript:void(0)">Log out</a> --}}
           <!-- Authentication -->

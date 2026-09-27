@@ -15,6 +15,8 @@
 	<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.css" />
 	<link href="{{ asset('css/app.css') }}" rel="stylesheet" />
 	<link href="{{ asset('css/satoshi.css') }}" rel="stylesheet" />
+	<link href="{{ asset('css/typography.css') }}" rel="stylesheet" />
+	<link href="{{ asset('css/custom.css') }}" rel="stylesheet" />
 	<style>
     /* In order to place the tracking correctly */
     canvas.drawing,

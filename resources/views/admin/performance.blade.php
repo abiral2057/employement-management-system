@@ -57,48 +57,67 @@
       <div id="printReport">
         <div class="card">
           <div class="table-responsive">
-            <table class="table table-hover my-0" id="performanceTable">
-            <thead>
+            <table class="table table-hover align-middle my-0" id="performanceTable">
+            <thead class="table-light text-uppercase small text-muted">
               <tr>
-                <th>{{ __('SL') }}</th>
+                <th style="width: 50px;">#</th>
                 <th>{{ __('Employee') }}</th>
-                <th>{{ __('Designation') }}</th>
-                <th>{{ __('Department') }}</th>
-                <th>{{ __('Present') }}</th>
-                <th>{{ __('Absent') }}</th>
-                <th>{{ __('Late') }}</th>
-                <th>{{ __('Overtime') }}</th>
-                <th>{{ __('Leave Days') }}</th>
-                <th>{{ __('Performance') }}</th>
+                <th>{{ __('Attendance Metrics') }}</th>
+                <th class="text-end" style="width: 200px;">{{ __('Performance Score') }}</th>
               </tr>
             </thead>
             <tbody>
               @forelse ($employees as $row)
                 <tr>
-                  <td>{{ $loop->iteration }}</td>
+                  <td class="text-muted fw-bold">{{ $loop->iteration }}</td>
                   <td>
-                    <strong>{{ $row['employee']->firstname }} {{ $row['employee']->lastname }}</strong>
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="avatar-mono flex-shrink-0" style="width:40px;height:40px;background:#09090b;color:#ffffff;font-size:.85rem;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                        {{ strtoupper(substr($row['employee']->firstname ?? 'E', 0, 1)) }}{{ strtoupper(substr($row['employee']->lastname ?? 'M', 0, 1)) }}
+                      </div>
+                      <div>
+                        <a href="{{ route('admin.employee.show', $row['employee']->id ?? 1) }}" class="fw-bold fs-5 text-dark text-decoration-none text-hover-primary d-block">
+                          {{ $row['employee']->firstname }} {{ $row['employee']->lastname }}
+                        </a>
+                        <div class="small text-muted">
+                          <span>{{ $row['employee']->designation->title ?? 'Staff' }}</span> &bull; <span>{{ $row['employee']->department->title ?? 'General' }}</span>
+                        </div>
+                      </div>
+                    </div>
                   </td>
-                  <td>{{ $row['employee']->designation->title ?? '—' }}</td>
-                  <td>{{ $row['employee']->department->title ?? '—' }}</td>
-                  <td class="text-success"><strong>{{ $row['present'] }}</strong></td>
-                  <td class="text-danger">{{ $row['absent'] }}</td>
-                  <td class="text-warning">{{ $row['lateCount'] }}</td>
-                  <td>{{ $row['overTime'] }}</td>
-                  <td>{{ $row['leaveDays'] }}</td>
                   <td>
-                    <div class="d-flex align-items-center gap-2">
-                      <div class="progress flex-grow-1" style="height: 8px;">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                      <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">
+                        <i class="fa-solid fa-check me-1"></i><strong>{{ $row['present'] }}</strong> Present
+                      </span>
+                      <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1">
+                        <i class="fa-solid fa-xmark me-1"></i><strong>{{ $row['absent'] }}</strong> Absent
+                      </span>
+                      @if($row['lateCount'] > 0)
+                        <span class="badge bg-warning bg-opacity-20 text-dark border border-warning px-2 py-1">
+                          <i class="fa-solid fa-clock me-1 text-danger"></i><strong>{{ $row['lateCount'] }}</strong> Late
+                        </span>
+                      @endif
+                      @if($row['overTime'] > 0)
+                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
+                          <i class="fa-regular fa-clock me-1"></i><strong>{{ $row['overTime'] }}</strong> OT
+                        </span>
+                      @endif
+                    </div>
+                  </td>
+                  <td class="text-end">
+                    <div class="d-flex align-items-center justify-content-end gap-2">
+                      <div class="progress flex-grow-1" style="height: 10px; max-width: 110px;">
                         @php $barColor = $row['performance'] >= 80 ? 'bg-success' : ($row['performance'] >= 50 ? 'bg-warning' : 'bg-danger'); @endphp
                         <div class="progress-bar {{ $barColor }}" role="progressbar" style="width: {{ min($row['performance'], 100) }}%"></div>
                       </div>
-                      <span class="badge {{ $barColor }}">{{ $row['performance'] }}%</span>
+                      <span class="badge {{ $barColor }} fs-6 fw-bold">{{ $row['performance'] }}%</span>
                     </div>
                   </td>
                 </tr>
               @empty
                 <tr>
-                  <td colspan="10" class="text-center text-muted py-4">{{ __('No employees found.') }}</td>
+                  <td colspan="4" class="text-center text-muted py-4">{{ __('No employees found.') }}</td>
                 </tr>
               @endforelse
             </tbody>

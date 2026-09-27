@@ -21,51 +21,52 @@
         <div class="card-header">              
           <h5 class="card-title mb-0">{{ __('Roles DataTable') }}</h5>
         </div>
-        <table class="table table-hover my-0 data-table">
-          <thead>
+        <table class="table table-hover align-middle my-0 data-table">
+          <thead class="table-light text-uppercase small text-muted">
             <tr>
-              <th class="d-none d-xl-table-cell">{{ __('SL') }}</th>
-              <th>{{ __('Role Title') }}</th>
-              <th class="d-none d-xl-table-cell">{{ __('Role Slug') }}</th>
-              <th>{{ __('Status') }}</th>
-              <th class="d-none d-md-table-cell">{{ __('Date Created') }}</th>
-              <th>{{ __('Action') }}</th>
+              <th style="width: 50px;">#</th>
+              <th>{{ __('Role Title & Identity') }}</th>
+              <th class="text-end" style="width: 120px;">{{ __('Action') }}</th>
             </tr>
           </thead>
           <tbody>
             @forelse ($roles as $k => $role)
               <tr>
-                <td class="d-none d-xl-table-cell">{{ $k + 1 }}</td>
+                <td class="text-muted fw-bold">{{ $k + 1 }}</td>
                 <td>
-                  <strong>{{ $role->title }}</strong>
+                  <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                    <span class="fw-bold fs-5 text-dark">{{ $role->title }}</span>
+                    <span class="badge bg-light text-dark border"><code>{{ $role->slug }}</code></span>
+                    @if ($role->status === 1)
+                      <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">Active</span>
+                    @elseif ($role->status === 0)
+                      <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1">Disabled</span>
+                    @else
+                      <span class="badge bg-secondary">Pending</span>
+                    @endif
+                  </div>
+                  <div class="small text-muted">
+                    Created {{ $role->created_at->diffForHumans() }}
+                  </div>
                 </td>
-                <td class="d-none d-xl-table-cell">{{ $role->slug }}</td>
-                <td>
-                  @if ($role->status === 1)
-                    <span class="badge bg-success">Enable</span>
-                  @elseif ($role->status === 0)
-                    <span class="badge bg-danger">Disable</span>
-                  @else
-                    <span class="badge bg-secondary">Pending</span>
-                  @endif
-                </td>
-                <td class="d-none d-md-table-cell">{{ $role->created_at->diffforhumans() }}</td>
-                <td width="90px">
-                  <a href="{{ route('roles.edit', $role->id) }}" class="btn btn-outline-primary btn-sm">
-                    <i class="fas fa-edit"></i>
-                  </a>
-                  <form action="{{ route('roles.destroy', $role->id) }}" method="post" class="d-inline">
-                    @csrf
-                    @method("delete")
-                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                      <i class="fas fa-trash-alt"></i>
-                    </button>
-                  </form>
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{{ route('roles.edit', $role->id) }}" class="btn btn-outline-primary btn-sm px-2" title="Edit Role">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <form action="{{ route('roles.destroy', $role->id) }}" method="post" class="d-inline" onsubmit="return confirm('Delete this role?');">
+                      @csrf
+                      @method("delete")
+                      <button type="submit" class="btn btn-outline-danger btn-sm px-2" title="Delete">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                    </form>
+                  </div>
                 </td>
               </tr>
             @empty
             <tr>
-              <td colspan="6" class="text-center">
+              <td colspan="3" class="text-center py-4 text-muted">
                 {{ __('No data found') }}
               </td>
             </tr>

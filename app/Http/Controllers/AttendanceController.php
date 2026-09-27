@@ -3,19 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use App\Http\Requests\StoreAttendanceRequest;
-use App\Http\Requests\UpdateAttendanceRequest;
-use Illuminate\Http\Request;
 use App\Models\Employee;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
-class AttendanceController extends Controller {
+class AttendanceController extends Controller
+{
     /**
-     * Display a listing of the resource.
+     * Display a listing of attendance.
      */
-    public function index() {
-        // $attendances = Attendance::all();
-        $employees = Employee::all();
+    public function index()
+    {
+        $employees = Employee::with(['department', 'designation', 'schedule'])->where('status', 1)->get();
         return view('admin.attendance.index', compact('employees'));
     }
 
@@ -24,28 +23,24 @@ class AttendanceController extends Controller {
      */
     public function create()
     {
-        //
-        $employees = Employee::all();
+        $employees = Employee::where('status', 1)->get();
         return view('admin.attendance.create', compact('employees'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreAttendanceRequest $request)
+    public function store(Request $request)
     {
-        //
-        Attendance::create($request->all());
-        return back()->with('success', 'user crated successfully');
-       
-    }
+        $data = $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'attendance_date' => 'required|date',
+            'attendance_time' => 'required',
+            'status' => 'nullable|in:0,1',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Attendance $attendance)
-    {
-        //
+        Attendance::create($data);
+        return back()->with('success', 'Attendance record created successfully.');
     }
 
     /**
@@ -53,40 +48,40 @@ class AttendanceController extends Controller {
      */
     public function edit($id)
     {
-        //
         $attendance = Attendance::findOrFail($id);
-        $employees = Employee::all();
+        $employees = Employee::where('status', 1)->get();
         return view('admin.attendance.edit', compact(['employees', 'attendance']));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateAttendanceRequest $request, Attendance $attendance)
+    public function update(Request $request, $id)
     {
-        //
+        $attendance = $id instanceof Attendance ? $id : Attendance::findOrFail($id);
         $attendance->update($request->all());
-        return back()->with('success', 'user updated successfully');
+        return back()->with('success', 'Attendance updated successfully.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Attendance $attendance)
+    public function destroy($id)
     {
-        //
-        // $attendance->delete();
-        // return back()->with('success', 'user deleted successfully');
+        $attendance = $id instanceof Attendance ? $id : Attendance::findOrFail($id);
+        $attendance->delete();
+        return back()->with('success', 'Attendance record deleted successfully.');
     }
 
-    public function report(Attendance $attendance, Request $request) {
-        $year = $request->input('year');
-        $month = $request->input('month');
+    public function report(Request $request)
+    {
+        $year = $request->input('year', date('Y'));
+        $month = $request->input('month', date('m'));
 
-        $daysInMonth = Carbon::create($year, $month)->daysInMonth;
+        $carbon = Carbon::createFromDate($year, $month, 1);
+        $daysInMonth = $carbon->daysInMonth;
 
-
-        $employees = Employee::all();
+        $employees = Employee::with('attendances')->where('status', 1)->get();
 
         $userAttendanceData = [];
 
@@ -95,45 +90,29 @@ class AttendanceController extends Controller {
                 'present' => 0,
                 'absent' => 0,
             ];
-           
-            
-            // $attendances = $employee->attendances->where('date', 'like', "$year-$month%");
-            $attendances = $employee->attendances->filter(function ($attendance) use ($year, $month)
-             {
-                return Carbon::parse($attendance->date)->year == $year &&
-                       Carbon::parse($attendance->date)->month == $month;
+
+            $attendances = $employee->attendances->filter(function ($att) use ($year, $month) {
+                $d = $att->attendance_date ?? $att->date;
+                if (!$d) return false;
+                $c = Carbon::parse($d);
+                return $c->year == $year && $c->month == (int) $month;
             });
 
-            foreach ($attendances as $attendance) {
-                if ($attendance->status === '1') {
+            foreach ($attendances as $att) {
+                if ($att->status == 1 || $att->status === '1') {
                     $userAttendanceData[$employee->id]['present']++;
-                } elseif ($attendance->status === '0') {
+                } else {
                     $userAttendanceData[$employee->id]['absent']++;
                 }
             }
-
-            $date = Carbon::parse($attendance->date);
-            $year = $date->year;
-            $month = $date->month;
-            $day = $date->day;
         }
 
-        // $attendanceData = Employee::select('employees.firstname', 'employees.lastname', 'attendances.date', 'attendances.checkin_time')
-        //     ->leftJoin('attendances', function ($join) use ($year, $month) {
-        //         $join->on('employees.id', '=', 'attendances.employee_id')
-        //             ->whereYear('attendances.date', $year)
-        //             ->whereMonth('attendances.date', $month);
-        //     })
-        //     ->orderBy('employees.firstname')
-        //     ->orderBy('attendances.date')
-        //     ->get();
-
-        return view('admin.attendance.report', compact('attendance', 'employees', 'daysInMonth', 'userAttendanceData', 'date'));
-        // return view('admin.attendance.report');
-    // }
+        $date = $carbon;
+        return view('admin.attendance.report', compact('employees', 'daysInMonth', 'userAttendanceData', 'date', 'year', 'month'));
     }
 
-    public function barcode() {
+    public function barcode()
+    {
         return view('admin.attendance.barcode');
     }
 }

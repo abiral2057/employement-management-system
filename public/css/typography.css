@@ -1,0 +1,782 @@
+/* ==========================================================
+   Design System: Large Typography, Yellowgreen Highlights,
+   Monochrome Black & White Foundation & Spacious Layout Margins
+   ========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
+
+:root {
+  --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* ── Black & White Foundation ── */
+  --color-primary-black: #09090b;
+  --color-primary-white: #ffffff;
+  --color-neutral-900:   #18181b;
+  --color-neutral-800:   #27272a;
+  --color-neutral-700:   #3f3f46;
+  --color-neutral-600:   #52525b;
+  --color-neutral-500:   #71717a;
+  --color-neutral-400:   #a1a1aa;
+  --color-neutral-300:   #d4d4d8;
+  --color-neutral-200:   #e4e4e7;
+  --color-neutral-100:   #f4f4f5;
+  --color-neutral-50:    #fafafa;
+
+  /* ── Yellowgreen Highlight Accent (Main Points, Buttons, Charts, Modules) ── */
+  --color-yellowgreen:         #9acd32;
+  --color-yellowgreen-hover:   #88b928;
+  --color-yellowgreen-active:  #78a620;
+  --color-yellowgreen-light:   #f4fbe6;
+  --color-yellowgreen-border:  #cae87b;
+  --color-yellowgreen-dark:    #3b5507;
+
+  /* ── Global System Functional Colors (Solid, No Gradients) ── */
+  --color-system-success:        #10b981;
+  --color-system-success-bg:     #ecfdf5;
+  --color-system-success-border: #a7f3d0;
+  --color-system-success-text:   #065f46;
+
+  --color-system-danger:         #ef4444;
+  --color-system-danger-bg:      #fef2f2;
+  --color-system-danger-border:  #fecaca;
+  --color-system-danger-text:    #991b1b;
+
+  --color-system-warning:        #f59e0b;
+  --color-system-warning-bg:     #fffbeb;
+  --color-system-warning-border: #fde68a;
+  --color-system-warning-text:   #92400e;
+
+  --color-system-info:           #3b82f6;
+  --color-system-info-bg:        #eff6ff;
+  --color-system-info-border:    #bfdbfe;
+  --color-system-info-text:      #1e40af;
+}
+
+/* ── Global Reset & Base Typography ── */
+body, html {
+  font-family: var(--font-primary) !important;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--color-neutral-900);
+  background-color: #fafafa;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.012em;
+}
+
+/* ── Clear Spacing & Layout Margins ── */
+.content {
+  padding: 2.5rem 2.75rem !important;
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: 1.25rem 1rem !important;
+  }
+}
+
+.page-header {
+  margin-bottom: 2.5rem !important;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.section-margin {
+  margin-bottom: 2.25rem !important;
+}
+
+/* ── Large, Bold, Prominent Headings ── */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: var(--font-primary) !important;
+  color: var(--color-primary-black);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+
+h1, .h1 {
+  font-size: 2.35rem !important;
+  font-weight: 850 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 1.16 !important;
+  margin-bottom: 0.75rem !important;
+}
+
+h2, .h2 {
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.22 !important;
+  margin-bottom: 0.65rem !important;
+}
+
+h3, .h3 {
+  font-size: 1.48rem !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.25 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+h4, .h4 {
+  font-size: 1.22rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  margin-bottom: 0.45rem !important;
+}
+
+h5, .h5 {
+  font-size: 1.05rem !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.015em !important;
+}
+
+h6, .h6 {
+  font-size: 0.82rem !important;
+  font-weight: 750 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.07em !important;
+  color: var(--color-neutral-500) !important;
+}
+
+/* ── Tabular Numerals ── */
+.table,
+.card-title,
+.stat,
+.badge,
+.emp-stat-num,
+.kpi-card h2,
+.font-tabular {
+  font-variant-numeric: tabular-nums;
+  -moz-font-feature-settings: "tnum";
+  -webkit-font-feature-settings: "tnum";
+  font-feature-settings: "tnum";
+}
+
+/* ── Yellowgreen Primary Buttons ── */
+.btn {
+  font-family: var(--font-primary) !important;
+  font-weight: 700 !important;
+  font-size: 0.88rem !important;
+  letter-spacing: -0.01em;
+  border-radius: 9px;
+  padding: 0.6rem 1.25rem !important;
+  transition: all 0.18s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-sm {
+  font-size: 0.8rem !important;
+  padding: 0.4rem 0.85rem !important;
+  border-radius: 7px;
+}
+
+.btn-lg {
+  font-size: 1rem !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 10px;
+}
+
+/* Yellowgreen as Primary Button Color */
+.btn-primary,
+.btn-yellowgreen {
+  background-color: var(--color-yellowgreen) !important;
+  border-color: var(--color-yellowgreen) !important;
+  color: #09090b !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-yellowgreen:hover,
+.btn-yellowgreen:focus {
+  background-color: var(--color-yellowgreen-hover) !important;
+  border-color: var(--color-yellowgreen-hover) !important;
+  color: #000000 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(154, 205, 50, 0.28) !important;
+}
+
+.btn-primary:active,
+.btn-yellowgreen:active {
+  background-color: var(--color-yellowgreen-active) !important;
+  border-color: var(--color-yellowgreen-active) !important;
+  transform: translateY(0);
+}
+
+.btn-outline-primary,
+.btn-outline-yellowgreen {
+  background-color: transparent !important;
+  border: 2px solid var(--color-yellowgreen) !important;
+  color: var(--color-yellowgreen-dark) !important;
+  font-weight: 700 !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-yellowgreen:hover {
+  background-color: var(--color-yellowgreen) !important;
+  border-color: var(--color-yellowgreen) !important;
+  color: #000000 !important;
+}
+
+.btn-dark {
+  background-color: var(--color-primary-black) !important;
+  border-color: var(--color-primary-black) !important;
+  color: var(--color-primary-white) !important;
+  font-weight: 750 !important;
+}
+
+.btn-outline-dark {
+  background-color: transparent !important;
+  border: 1.5px solid var(--color-primary-black) !important;
+  color: var(--color-primary-black) !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.01em;
+}
+
+.btn-outline-dark:hover,
+.btn-outline-dark:focus {
+  background-color: var(--color-primary-black) !important;
+  color: var(--color-primary-white) !important;
+  border-color: var(--color-primary-black) !important;
+  transform: translateY(-1px);
+}
+
+.btn-light, .btn-outline-secondary {
+  background-color: var(--color-primary-white) !important;
+  border: 1px solid var(--color-neutral-200) !important;
+  color: var(--color-neutral-800) !important;
+  font-weight: 700 !important;
+}
+
+.btn-light:hover, .btn-outline-secondary:hover {
+  background-color: var(--color-neutral-100) !important;
+  color: var(--color-primary-black) !important;
+  border-color: var(--color-neutral-300) !important;
+}
+
+/* Specific Action Button Typography (Table & Header CTAs) */
+.table td .btn,
+table td .btn,
+.table-action-btn {
+  font-family: var(--font-primary) !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.01em !important;
+  padding: 0.38rem 0.75rem !important;
+  font-size: 0.78rem !important;
+  line-height: 1.35 !important;
+  border-radius: 7px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.15s ease-in-out !important;
+}
+
+.table td .btn:hover,
+table td .btn:hover {
+  transform: translateY(-1px);
+}
+
+.page-header .btn,
+.card-footer .btn,
+.btn-cta,
+.btn-lg {
+  font-weight: 800 !important;
+  letter-spacing: -0.015em !important;
+}
+
+/* ── Yellowgreen Highlights for Modules & Cards ── */
+.highlight-module {
+  border-left: 5px solid var(--color-yellowgreen) !important;
+}
+
+.highlight-point {
+  color: var(--color-yellowgreen-dark) !important;
+  font-weight: 800;
+}
+
+.badge-yellowgreen {
+  background-color: var(--color-yellowgreen) !important;
+  color: #09090b !important;
+  font-weight: 750 !important;
+  border: 1px solid var(--color-yellowgreen-border) !important;
+}
+
+/* ── Sidebar: Pure Black & White Foundation with Yellowgreen Active Accent ── */
+.sidebar {
+  font-family: var(--font-primary) !important;
+  background: var(--color-primary-black) !important;
+  border-right: 1px solid var(--color-neutral-800);
+}
+
+.sidebar-content {
+  background: var(--color-primary-black) !important;
+}
+
+.sidebar-brand {
+  font-weight: 850 !important;
+  letter-spacing: -0.03em;
+  font-size: 1.25rem !important;
+  color: var(--color-primary-white) !important;
+  background: var(--color-primary-black) !important;
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  padding: 1.6rem 1.6rem !important;
+  border-bottom: 1px solid var(--color-neutral-800);
+}
+
+.brand-graphic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-yellowgreen);
+  color: var(--color-primary-black);
+  border-radius: 8px;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.sidebar-header {
+  font-size: 0.72rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.09em !important;
+  font-weight: 750 !important;
+  color: var(--color-neutral-500) !important;
+  padding: 1.5rem 1.6rem 0.5rem !important;
+  margin-top: 0.5rem;
+}
+
+.sidebar-link {
+  font-size: 0.88rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em;
+  border-radius: 9px;
+  margin: 3px 10px;
+  padding: 0.7rem 1rem !important;
+  color: var(--color-neutral-400) !important;
+  background: transparent !important;
+  transition: all 0.16s ease-in-out;
+}
+
+.sidebar-link i {
+  font-size: 1rem;
+  width: 22px;
+  text-align: center;
+  margin-right: 10px;
+  color: var(--color-neutral-400);
+}
+
+.sidebar-item.active > .sidebar-link {
+  color: var(--color-primary-white) !important;
+  background-color: var(--color-neutral-800) !important;
+  border-left: 3px solid var(--color-yellowgreen) !important;
+  font-weight: 700 !important;
+}
+
+.sidebar-item.active > .sidebar-link i {
+  color: var(--color-yellowgreen) !important;
+}
+
+.sidebar-link:hover {
+  color: var(--color-primary-white) !important;
+  background-color: var(--color-neutral-900) !important;
+}
+
+/* ── Cards: Generous Padding & Margins ── */
+.card {
+  border: 1px solid var(--color-neutral-200) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  background-color: var(--color-primary-white) !important;
+  margin-bottom: 1.75rem !important;
+}
+
+.card-header {
+  background-color: var(--color-primary-white) !important;
+  border-bottom: 1px solid var(--color-neutral-100) !important;
+  padding: 1.25rem 1.5rem !important;
+}
+
+.card-body {
+  padding: 1.5rem 1.75rem !important;
+}
+
+.card-title {
+  font-size: 1.1rem !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.02em;
+  color: var(--color-primary-black);
+}
+
+/* ── Tables: Airy Spacing & Clear Padding ── */
+.table {
+  font-size: 0.9rem;
+  color: var(--color-neutral-900);
+  background-color: var(--color-primary-white);
+  margin-bottom: 0;
+}
+
+.table thead th {
+  font-size: 0.74rem !important;
+  font-weight: 750 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  color: var(--color-neutral-600) !important;
+  background-color: var(--color-neutral-50) !important;
+  border-bottom: 1px solid var(--color-neutral-200) !important;
+  padding: 1rem 1.25rem !important;
+  vertical-align: middle;
+}
+
+.table tbody td {
+  padding: 1.05rem 1.25rem !important;
+  vertical-align: middle;
+  border-color: var(--color-neutral-100);
+}
+
+.table tbody tr:hover {
+  background-color: var(--color-neutral-50) !important;
+}
+
+/* ── Form Inputs with Clear Margins ── */
+.form-control, .form-select {
+  font-family: var(--font-primary) !important;
+  font-size: 0.9rem;
+  border-radius: 9px;
+  border: 1px solid var(--color-neutral-300);
+  background-color: var(--color-primary-white);
+  padding: 0.65rem 0.95rem;
+  color: var(--color-neutral-900);
+  margin-bottom: 0.25rem;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--color-yellowgreen-hover) !important;
+  box-shadow: 0 0 0 3px rgba(154, 205, 50, 0.25) !important;
+  outline: none;
+}
+
+.form-label {
+  font-size: 0.84rem;
+  font-weight: 650;
+  color: var(--color-neutral-800);
+  margin-bottom: 0.45rem;
+}
+
+/* ── Nav Tabs / Pills ── */
+.nav-pills .nav-link {
+  color: var(--color-neutral-600);
+  border-radius: 9px;
+  font-weight: 650;
+  font-size: 0.88rem;
+  padding: 0.6rem 1.1rem;
+  margin-right: 0.35rem;
+  margin-bottom: 0.5rem;
+  background: transparent;
+  transition: all 0.15s ease;
+}
+
+.nav-pills .nav-link:hover {
+  color: var(--color-primary-black);
+  background-color: var(--color-neutral-100);
+}
+
+.nav-pills .nav-link.active {
+  background-color: var(--color-primary-black) !important;
+  color: var(--color-yellowgreen) !important;
+  font-weight: 750 !important;
+}
+
+/* ── Badges ── */
+.badge {
+  font-weight: 650;
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+  border-radius: 6px;
+  padding: 0.4em 0.7em;
+}
+
+.badge-dark, .badge-primary {
+  background-color: var(--color-primary-black) !important;
+  color: var(--color-primary-white) !important;
+}
+
+.badge-light, .badge-secondary {
+  background-color: var(--color-neutral-100) !important;
+  color: var(--color-neutral-800) !important;
+  border: 1px solid var(--color-neutral-200);
+}
+
+/* Global System Functional Badges */
+.badge-system-success, .badge.bg-success {
+  background-color: var(--color-system-success-bg) !important;
+  color: var(--color-system-success-text) !important;
+  border: 1px solid var(--color-system-success-border) !important;
+}
+
+.badge-system-danger, .badge.bg-danger {
+  background-color: var(--color-system-danger-bg) !important;
+  color: var(--color-system-danger-text) !important;
+  border: 1px solid var(--color-system-danger-border) !important;
+}
+
+.badge-system-warning, .badge.bg-warning {
+  background-color: var(--color-system-warning-bg) !important;
+  color: var(--color-system-warning-text) !important;
+  border: 1px solid var(--color-system-warning-border) !important;
+}
+
+.badge-system-info, .badge.bg-info {
+  background-color: var(--color-system-info-bg) !important;
+  color: var(--color-system-info-text) !important;
+  border: 1px solid var(--color-system-info-border) !important;
+}
+
+/* ── Clean System Alerts ── */
+.alert {
+  border-radius: 9px;
+  font-size: 0.9rem;
+  font-weight: 550;
+  border-width: 1px;
+  padding: 1rem 1.25rem !important;
+  margin-bottom: 1.75rem !important;
+}
+
+.alert-success {
+  background-color: var(--color-system-success-bg) !important;
+  border-color: var(--color-system-success-border) !important;
+  color: var(--color-system-success-text) !important;
+}
+
+.alert-danger {
+  background-color: var(--color-system-danger-bg) !important;
+  border-color: var(--color-system-danger-border) !important;
+  color: var(--color-system-danger-text) !important;
+}
+
+.alert-warning {
+  background-color: var(--color-system-warning-bg) !important;
+  border-color: var(--color-system-warning-border) !important;
+  color: var(--color-system-warning-text) !important;
+}
+
+.alert-info {
+  background-color: var(--color-system-info-bg) !important;
+  border-color: var(--color-system-info-border) !important;
+  color: var(--color-system-info-text) !important;
+}
+
+/* ── Avatars ── */
+.avatar-mono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-primary-black);
+  color: var(--color-primary-white);
+  font-weight: 700;
+  border-radius: 50%;
+  font-size: 0.8rem;
+}
+
+/* ==========================================================
+   MODERN DESIGN TREND: LARGE FONT & MINIMAL VISIBLE CONTENT
+   Enhanced scannability, ample whitespace, high performance
+   ========================================================== */
+
+/* ── Generous Base Font & Clean Contrast ── */
+body, html {
+  font-size: 16px !important;
+  line-height: 1.65 !important;
+  color: #18181b !important;
+  background-color: #fafafa !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Large Confident Headings ── */
+h1, .h1 {
+  font-size: 2.25rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.035em !important;
+  line-height: 1.2 !important;
+  margin-bottom: 0.75rem !important;
+}
+
+h2, .h2 {
+  font-size: 1.75rem !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.25 !important;
+}
+
+h3, .h3 {
+  font-size: 1.4rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.025em !important;
+}
+
+h4, .h4 {
+  font-size: 1.15rem !important;
+  font-weight: 650 !important;
+}
+
+/* ── Large High-Impact Metric Numbers (Immediate Glanceability) ── */
+.kpi-val, .metric-value, .stat-value, .display-4, .display-5, .display-6,
+.stat-card-val, .card h1.mt-1.mb-3 {
+  font-size: 2.25rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 1.1 !important;
+  color: #09090b !important;
+}
+
+/* ── Minimalist Cards with Generous Breathing Room ── */
+.card {
+  border: 1px solid #e4e4e7 !important;
+  border-radius: 14px !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.card:hover {
+  border-color: #d4d4d8 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+.card-header {
+  padding: 1.25rem 1.5rem !important;
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #f4f4f5 !important;
+  font-weight: 700 !important;
+  font-size: 1.05rem !important;
+  letter-spacing: -0.015em !important;
+}
+
+.card-body {
+  padding: 1.5rem 1.75rem !important;
+}
+
+.card-footer {
+  padding: 1rem 1.5rem !important;
+  background-color: #fafafa !important;
+  border-top: 1px solid #f4f4f5 !important;
+}
+
+/* ── Minimal, High-Legibility Data Tables ── */
+.table {
+  font-size: 0.95rem !important;
+  margin-bottom: 0 !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+.table th {
+  font-size: 0.76rem !important;
+  font-weight: 750 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  color: #71717a !important;
+  background-color: #fcfcfc !important;
+  padding: 0.95rem 1.25rem !important;
+  border-bottom: 1px solid #e4e4e7 !important;
+  border-top: none !important;
+  white-space: nowrap !important;
+}
+
+.table td {
+  padding: 1rem 1.25rem !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid #f4f4f5 !important;
+  border-top: none !important;
+  color: #27272a !important;
+}
+
+.table-hover tbody tr {
+  transition: background-color 0.15s ease !important;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f8fafc !important;
+}
+
+/* ── Minimalist Pill Badges ── */
+.badge {
+  padding: 0.35rem 0.75rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 650 !important;
+  border-radius: 9999px !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* ── Large, Comfortable Form Controls ── */
+.form-control, .form-select {
+  min-height: 44px !important;
+  padding: 0.625rem 1rem !important;
+  font-size: 0.95rem !important;
+  border-radius: 10px !important;
+  border: 1.5px solid #e4e4e7 !important;
+  background-color: #ffffff !important;
+  color: #18181b !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #09090b !important;
+  box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.08) !important;
+  outline: none !important;
+}
+
+.form-label {
+  font-size: 0.88rem !important;
+  font-weight: 650 !important;
+  color: #27272a !important;
+  margin-bottom: 0.45rem !important;
+}
+
+/* ── Large, Confident Buttons with Clean Depth ── */
+.btn {
+  min-height: 42px !important;
+  padding: 0.6rem 1.25rem !important;
+  font-size: 0.92rem !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.01em !important;
+  border-radius: 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-sm {
+  min-height: 36px !important;
+  padding: 0.38rem 0.85rem !important;
+  font-size: 0.84rem !important;
+  border-radius: 8px !important;
+}
+
+.btn-lg {
+  min-height: 50px !important;
+  padding: 0.8rem 1.75rem !important;
+  font-size: 1.05rem !important;
+  border-radius: 12px !important;
+}
+
+/* ── Reduced Visual Clutter & High Performance ── */
+.text-muted, .small, small {
+  color: #71717a !important;
+  font-size: 0.86rem !important;
+}
+
+* {
+  text-rendering: optimizeLegibility;
+}

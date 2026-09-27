@@ -11,13 +11,13 @@
 @section('content')
   <section class="row">
     <div class="col-12">
-      <form method="POST" action="{{ Auth::user()->role->slug === 'super-admin' ? route('employee.store') : (Auth::user()->role->slug === 'administrator' ? route('admin.employee.store') : route('hr.employee.store') ) }}">
+      <form method="POST" action="{{ Auth::user()->role->slug === 'super-admin' ? route('employee.store') : (Auth::user()->role->slug === 'administrator' ? route('admin.employee.store') : route('hr.employee.store') ) }}" enctype="multipart/form-data">
         @csrf
         <div class="row g-3">
           <div class="col-6">
             <div class="card flex-fill">
               <div class="card-header">
-                <h5 class="card-title mb-0">{{ ('Personal') }}</h5>
+                <h5 class="card-title mb-0">{{ ('Personal & Emergency Contact') }}</h5>
               </div>
               <div class="card-body">
                 <div class="row g-3">
@@ -41,9 +41,21 @@
                     <label for="dob">{{ __('Date of Birth') }}</label>
                     <input type="date" name="dob" class="form-control" id="dob" />
                   </div>
+                  <div class="col-6">
+                    <label for="joining_date">{{ __('Joining Date') }}</label>
+                    <input type="date" name="joining_date" class="form-control" id="joining_date" value="{{ date('Y-m-d') }}" />
+                  </div>
+                  <div class="col-6">
+                    <label for="emergency_contact_name">{{ __('Emergency Contact Name') }}</label>
+                    <input type="text" name="emergency_contact_name" class="form-control" id="emergency_contact_name" placeholder="Contact person name" />
+                  </div>
+                  <div class="col-12">
+                    <label for="emergency_contact_phone">{{ __('Emergency Contact Phone') }}</label>
+                    <input type="tel" name="emergency_contact_phone" class="form-control" id="emergency_contact_phone" placeholder="Emergency contact number" />
+                  </div>
                   <div class="col-12">
                     <label for="address">{{ __('Address') }}</label>
-                    <textarea name="address" class="form-control" id="address" cols="30" rows="6" placeholder="Type address here"></textarea>
+                    <textarea name="address" class="form-control" id="address" cols="30" rows="3" placeholder="Type address here"></textarea>
                   </div>
                   <div class="col-4">
                     <label for="gender">{{ __('Gender') }}</label>
@@ -146,18 +158,21 @@
                   <div class="col-6">
                     <label for="status">Status</label>
                     <select name="status" class="form-control" id="status">
-                      <option value="">{{ __('-- Choose One --') }}</option>
-                      <option value="1">{{ __('Currently Employed') }}</option>
-                      <option value="2">{{ __('Retired') }}</option>
+                      <option value="1" selected>{{ __('Active / Currently Employed') }}</option>
+                      <option value="5">{{ __('On Leave') }}</option>
                       <option value="3">{{ __('Resigned') }}</option>
                       <option value="4">{{ __('Terminated') }}</option>
-                      <option value="5">{{ __('On Leave') }}</option>
-                      <option value="6">{{ __('Contract Ended') }}</option>
-                      <option value="7">{{ __('Part-Time') }}</option>
-                      <option value="8">{{ __('Full-Time') }}</option>
-                      <option value="9">{{ __('Freelancer') }}</option>
-                      <option value="10">{{ __('Intern') }}</option>
-                      <option value="11">{{ __('Transferred') }}</option>
+                      <option value="2">{{ __('Retired') }}</option>
+                    </select>
+                  </div>
+                  <div class="col-6">
+                    <label for="employment_type">{{ __('Employment Type') }}</label>
+                    <select name="employment_type" class="form-control" id="employment_type">
+                      <option value="full_time" selected>{{ __('Full-Time') }}</option>
+                      <option value="part_time">{{ __('Part-Time') }}</option>
+                      <option value="contract">{{ __('Contract') }}</option>
+                      <option value="intern">{{ __('Intern') }}</option>
+                      <option value="freelance">{{ __('Freelancer') }}</option>
                     </select>
                   </div>
                 </div>

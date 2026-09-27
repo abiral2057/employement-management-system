@@ -2,82 +2,76 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LateTime;
-use Illuminate\Http\Request;
 use App\Models\Employee;
+use App\Models\LateTime;
+use Carbon\Carbon;
 use DateTime;
-
+use Illuminate\Http\Request;
 
 class LateTimeController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of late time records.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-        $employees = Employee::all();
-        return view('admin.attendance.latetime', compact('employees'));
+        $selectedMonth = $request->input('month', today()->format('Y-m'));
+        $employeeFilter = $request->input('employee_id');
+
+        $query = LateTime::with(['employee.department', 'employee.designation', 'employee.schedule'])
+            ->orderBy('latetime_date', 'desc');
+
+        if ($request->filled('month')) {
+            $carbonMonth = Carbon::parse($selectedMonth . '-01');
+            $query->whereBetween('latetime_date', [
+                $carbonMonth->copy()->startOfMonth()->toDateString(),
+                $carbonMonth->copy()->endOfMonth()->toDateString()
+            ]);
+        }
+
+        if ($employeeFilter) {
+            $query->where('employee_id', $employeeFilter);
+        }
+
+        $lateTimes = $query->paginate(25)->withQueryString();
+
+        $employees = Employee::where('status', 1)->orderBy('firstname')->get();
+
+        return view('admin.attendance.latetime', compact('lateTimes', 'employees', 'selectedMonth', 'employeeFilter'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Remove late time record.
      */
-    public function create()
+    public function destroy($id)
     {
-        //
+        $late = LateTime::findOrFail($id);
+        $late->delete();
+
+        return back()->with('success', 'Late record deleted.');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Auto calculate late time from clock-in.
      */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(LateTime $lateTime)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(LateTime $lateTime)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, LateTime $lateTime)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(LateTime $lateTime)
-    {
-        //
-    }
-
     public static function lateTime(Employee $employee)
-     {
-         $current_t = new DateTime(date('H:i:s'));
-         $start_t = new DateTime($employee->schedules->first()->time_in);
-         $difference = $start_t->diff($current_t)->format('%H:%I:%S');
+    {
+        $schedule = $employee->schedule;
+        if (!$schedule || !$schedule->time_in) {
+            return;
+        }
 
-         $latetime = new Latetime();
-         $latetime->emp_id = $employee->id;
-         $latetime->duration = $difference;
-         $latetime->latetime_date = date('Y-m-d');
-         $latetime->save();
-     }
+        $current_t = new DateTime(date('H:i:s'));
+        $scheduled_in = new DateTime($schedule->time_in);
+
+        if ($current_t > $scheduled_in) {
+            $difference = $scheduled_in->diff($current_t)->format('%H:%I:%S');
+
+            $latetime = new LateTime();
+            $latetime->employee_id = $employee->id;
+            $latetime->latetime_duration = $difference;
+            $latetime->latetime_date = date('Y-m-d');
+            $latetime->save();
+        }
+    }
 }

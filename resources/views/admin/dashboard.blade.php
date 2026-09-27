@@ -10,26 +10,26 @@
     $greeting = $hour < 12 ? __('Good Morning') : ($hour < 17 ? __('Good Afternoon') : __('Good Evening'));
     $greetIcon = $hour < 12 ? 'fa-sun' : ($hour < 17 ? 'fa-cloud-sun' : 'fa-moon');
   @endphp
-  <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div class="page-header d-flex flex-wrap align-items-center justify-content-between mb-4 pb-3">
     <div>
-      <h1 class="h3 mb-1">
+      <h1 class="h1 mb-2">
         <i class="fas {{ $greetIcon }} text-warning me-2"></i>{{ $greeting }}, <strong>{{ Auth::user()->name }}</strong>
       </h1>
-      <div class="text-muted">
+      <div class="text-muted fs-6">
         <i class="fas fa-calendar-alt me-1"></i><span id="liveDate">{{ now()->format('l, F j, Y') }}</span>
-        <i class="fas fa-clock ms-3 me-1"></i><span id="liveTime">{{ now()->format('g:i:s A') }}</span>
+        <i class="fas fa-clock ms-4 me-1"></i><span id="liveTime">{{ now()->format('g:i:s A') }}</span>
       </div>
     </div>
-    <div class="mt-2 mt-md-0">
-      <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
-        <i class="fas fa-print"></i>
-        <span class="ps-1">{{ __('Print Dashboard') }}</span>
+    <div class="mt-3 mt-md-0">
+      <button type="button" class="btn btn-primary" onclick="window.print()">
+        <i class="fas fa-print me-1"></i>
+        <span>{{ __('Print Dashboard') }}</span>
       </button>
     </div>
   </div>
 
   {{-- ── Quick Employee Search Bar ── --}}
-  <div class="db-qsearch-wrap mb-1" id="dbSearchWrapper">
+  <div class="db-qsearch-wrap mb-4" id="dbSearchWrapper">
     <div class="db-qsearch-inner">
       <span class="db-qsearch-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
       <input
@@ -40,7 +40,7 @@
         autocomplete="off"
         spellcheck="false"
       />
-      <a href="{{ Auth::user()->role->slug === 'super-admin' ? route('employee.search') : (Auth::user()->role->slug === 'administrator' ? route('admin.employee.search') : route('hr.employee.search')) }}" class="db-qsearch-link" title="Open full search page">
+      <a href="{{ Auth::user()->role->slug === 'super-admin' ? route('employee.search') : (Auth::user()->role->slug === 'administrator' ? route('admin.employee.search') : route('hr.employee.search')) }}" class="btn btn-sm btn-primary" title="Open full search page">
         <i class="fa-solid fa-arrow-up-right-from-square me-1"></i><span class="d-none d-sm-inline">Full Search</span>
       </a>
     </div>
@@ -49,6 +49,162 @@
 @endsection
 
 @section('content')
+  @php
+    $todayDayShifts = App\Models\ShiftRoster::whereDate('shift_date', today())->where('shift_type', 'day')->count();
+    $todayNightShifts = App\Models\ShiftRoster::whereDate('shift_date', today())->where('shift_type', 'night')->count();
+    $todayExtraShifts = App\Models\ShiftRoster::whereDate('shift_date', today())->where('shift_type', 'extra')->count();
+    $totalOtPending = App\Models\OverTime::where('status', 'pending')->count();
+    $pendingLeavesCount = App\Models\Leave::where('status', 0)->count();
+    $unpaidPayrolls = App\Models\Payroll::where('payment_status', '!=', 'paid')->whereNotNull('due_date')->where('due_date', '<', today()->toDateString())->count();
+    $totalDueBalance = App\Models\Payroll::where('payment_status', '!=', 'paid')->get()->sum(fn($p) => $p->balance_due);
+    $activeEmployeesCount = App\Models\Employee::where('status', 1)->count();
+    $presentTodayCount = App\Models\Attendance::whereDate('attendance_date', today())->where('status', 1)->count();
+    $absentTodayCount = App\Models\Attendance::whereDate('attendance_date', today())->where('status', 0)->count();
+  @endphp
+
+  {{-- ── Quick Action Hub (Section 6 & 19 of Checklist) ── --}}
+  <div class="card border-0 shadow-sm mb-4 bg-white" style="border-radius: 12px;">
+    <div class="card-body p-3">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-primary px-2 py-1"><i class="fa-solid fa-bolt me-1"></i>Quick Actions</span>
+          <span class="text-muted small d-none d-md-inline">Execute primary HR workflows in 1 click:</span>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ Auth::user()->role->slug === 'super-admin' ? route('employee.create') : (Auth::user()->role->slug === 'administrator' ? route('admin.employee.create') : route('hr.employee.create') ) }}" class="btn btn-sm btn-outline-primary fw-semibold">
+            <i class="fa-solid fa-user-plus me-1"></i> Add Employee
+          </a>
+          <a href="{{ Auth::user()->role->slug === 'super-admin' ? route('attendance.index') : (Auth::user()->role->slug === 'administrator' ? route('admin.attendance.index') : route('moderator.attendance.index') ) }}" class="btn btn-sm btn-outline-secondary fw-semibold">
+            <i class="fa-solid fa-calendar-check me-1"></i> Daily Attendance
+          </a>
+          <a href="{{ Auth::user()->role->slug === 'super-admin' ? route('leaves.index') : (Auth::user()->role->slug === 'administrator' ? route('admin.leaves.index') : route('hr.leaves.index') ) }}" class="btn btn-sm btn-outline-warning text-dark fw-semibold position-relative">
+            <i class="fa-solid fa-person-walking-arrow-right me-1"></i> Leaves
+            @if($pendingLeavesCount > 0)
+              <span class="badge bg-warning text-dark rounded-pill ms-1">{{ $pendingLeavesCount }}</span>
+            @endif
+          </a>
+          <a href="{{ route('payroll.create') }}" class="btn btn-sm btn-outline-success fw-semibold">
+            <i class="fa-solid fa-calculator me-1"></i> Generate Payroll
+          </a>
+          <a href="{{ Auth::user()->role->slug === 'super-admin' ? route('super.performance.report') : route('admin.performance.report') }}" class="btn btn-sm btn-outline-dark fw-semibold">
+            <i class="fa-solid fa-chart-pie me-1"></i> Reports
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- ── Action Center: What Requires Immediate Attention (5-Second Rule) ── --}}
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100 bg-white border-start border-warning border-4">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small text-uppercase fw-bold text-muted">Pending Leaves</span>
+            <span class="badge bg-warning bg-opacity-10 text-warning">{{ $pendingLeavesCount }} queue</span>
+          </div>
+          <div class="fs-4 fw-bold text-dark mb-1">{{ $pendingLeavesCount }}</div>
+          <a href="{{ Auth::user()->role->slug === 'super-admin' ? route('leaves.index') : (Auth::user()->role->slug === 'administrator' ? route('admin.leaves.index') : route('hr.leaves.index') ) }}" class="small text-warning fw-semibold text-decoration-underline">Review & Approve &rarr;</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100 bg-white border-start border-primary border-4">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small text-uppercase fw-bold text-muted">OT Pending Claims</span>
+            <span class="badge bg-primary bg-opacity-10 text-primary">{{ $totalOtPending }} claims</span>
+          </div>
+          <div class="fs-4 fw-bold text-dark mb-1">{{ $totalOtPending }}</div>
+          <a href="{{ route('attendance.overtime') }}" class="small text-primary fw-semibold text-decoration-underline">Approve Claims &rarr;</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100 bg-white border-start border-danger border-4">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small text-uppercase fw-bold text-muted">Payment Overdue</span>
+            <span class="badge bg-danger bg-opacity-10 text-danger">{{ $unpaidPayrolls }} pay</span>
+          </div>
+          <div class="fs-4 fw-bold text-danger mb-1">€ {{ number_format($totalDueBalance, 2) }}</div>
+          <a href="{{ route('payroll.due') }}" class="small text-danger fw-semibold text-decoration-underline">Send Reminders &rarr;</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100 bg-white border-start border-success border-4">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small text-uppercase fw-bold text-muted">Present Today</span>
+            <span class="badge bg-success bg-opacity-10 text-success">{{ $activeEmployeesCount }} active</span>
+          </div>
+          <div class="fs-4 fw-bold text-success mb-1">{{ $presentTodayCount }} <span class="fs-6 text-muted fw-normal">/ {{ $activeEmployeesCount }}</span></div>
+          <a href="{{ Auth::user()->role->slug === 'super-admin' ? route('attendance.index') : (Auth::user()->role->slug === 'administrator' ? route('admin.attendance.index') : route('moderator.attendance.index') ) }}" class="small text-success fw-semibold text-decoration-underline">Daily Log &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- ── Quick Feature Tracker Banner ── --}}
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="card border shadow-sm h-100 bg-white highlight-module">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-uppercase small fw-bold text-dark">
+              <i class="fa-solid fa-business-time me-2 text-dark"></i>{{ __('Shift Coverage Today') }}
+            </span>
+            <a href="{{ route('shifts.roster') }}" class="btn btn-sm btn-primary py-1 px-3">Manage</a>
+          </div>
+          <div class="d-flex gap-2 align-items-center mt-3">
+            <span class="badge bg-light text-dark border px-2 py-1"><i class="fa-solid fa-sun me-1"></i>{{ $todayDayShifts }} Day</span>
+            <span class="badge bg-dark text-white px-2 py-1"><i class="fa-solid fa-moon me-1"></i>{{ $todayNightShifts }} Night</span>
+            <span class="badge badge-yellowgreen px-2 py-1"><i class="fa-solid fa-bolt me-1"></i>{{ $todayExtraShifts }} Extra</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border shadow-sm h-100 bg-white highlight-module">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-uppercase small fw-bold text-dark">
+              <i class="fa-solid fa-stopwatch me-2 text-dark"></i>{{ __('Overtime (OT) Claims') }}
+            </span>
+            <a href="{{ route('attendance.overtime') }}" class="btn btn-sm btn-primary py-1 px-3">Review</a>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <div>
+              <span class="fw-bold fs-4 text-dark">{{ $totalOtPending }}</span>
+              <span class="small text-muted ms-1">pending claims</span>
+            </div>
+            <a href="{{ route('attendance.overtime') }}" class="small fw-bold text-dark text-decoration-underline">Approve OT &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border shadow-sm h-100 bg-white highlight-module {{ $unpaidPayrolls > 0 ? 'border-danger' : '' }}">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-uppercase small fw-bold {{ $unpaidPayrolls > 0 ? 'text-danger' : 'text-dark' }}">
+              <i class="fa-solid fa-file-invoice-dollar me-2"></i>{{ __('Payment Due & Reminders') }}
+            </span>
+            <a href="{{ route('payroll.due') }}" class="btn btn-sm btn-primary py-1 px-3">Due Center</a>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <div>
+              <span class="fw-bold fs-4 {{ $unpaidPayrolls > 0 ? 'text-danger' : 'text-dark' }}">€ {{ number_format($totalDueBalance, 2) }}</span>
+              <span class="small text-muted ms-1">({{ $unpaidPayrolls }} overdue)</span>
+            </div>
+            <a href="{{ route('payroll.due') }}" class="small fw-bold {{ $unpaidPayrolls > 0 ? 'text-danger' : 'text-dark' }} text-decoration-underline">Send Reminder &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <section class="row">
     <div class="col-sm-6">
       <div class="row">
@@ -191,28 +347,39 @@
           </div>
         </div>
         <div class="card-body pt-0 mt-0">
-          <table class="table table-hover my-0">
-            <thead>
+          <table class="table table-hover align-middle my-0">
+            <thead class="table-light text-uppercase small text-muted">
               <tr>
-                <th>{{ __('SL') }}</th>
-                <th>{{ __('Name of Employee') }}</th>
-                <th>{{ __('Department') }}</th>
-                <th>{{ __('Designation') }}</th>
-                <th>{{ __('Appointed') }}</th>
+                <th style="width: 50px;">#</th>
+                <th>{{ __('Employee Name') }}</th>
+                <th class="text-end" style="width: 140px;">{{ __('Action') }}</th>
               </tr>
             </thead>
             <tbody>
               @foreach ($employees as $employee)
                 <tr>
-                  <td>{{ $loop->iteration }}</td>
+                  <td class="text-muted fw-bold">{{ $loop->iteration }}</td>
                   <td>
-                    <a href="{{ route('employee.edit', $employee->id) }}">
-                      <strong>{{ $employee->firstname . ' ' . $employee->lastname }}</strong>
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="avatar-mono flex-shrink-0" style="width:38px;height:38px;background:#09090b;color:#ffffff;font-size:.85rem;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                        {{ strtoupper(substr($employee->firstname ?? 'E', 0, 1)) }}{{ strtoupper(substr($employee->lastname ?? 'M', 0, 1)) }}
+                      </div>
+                      <div>
+                        <a href="{{ route('admin.employee.show', $employee->id ?? 1) }}" class="fw-bold fs-5 text-dark text-decoration-none text-hover-primary d-block">
+                          {{ $employee->firstname }} {{ $employee->lastname }}
+                        </a>
+                        <div class="small text-muted">
+                          <span class="badge bg-light text-dark border me-1">{{ $employee->unique_id ?? ('#' . $employee->id) }}</span>
+                          <span>{{ optional($employee->department)->title ?? 'General' }}</span> &bull; <span>{{ optional($employee->designation)->title ?? 'Staff' }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-end">
+                    <a href="{{ route('admin.employee.show', $employee->id ?? 1) }}" class="btn btn-dark btn-sm fw-semibold px-3">
+                      {{ __('Profile') }} &rarr;
                     </a>
                   </td>
-                  <td>{{ $employee->department->title }}</td>
-                  <td>{{ $employee->designation->title }}</td>
-                  <td>{{ $employee->created_at->diffforhumans() }}</td>
                 </tr>
               @endforeach
             </tbody>
@@ -269,7 +436,7 @@
 @section('script')
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script id="chartScript">
-    const chartColors = ['#3b7ddd', '#1cbb8c', '#fcb92c', '#e83e8c', '#6f42c1', '#17a2b8', '#dc3545', '#fd7e14'];
+    const chartColors = ['#9acd32', '#09090b', '#71717a', '#84cc16', '#27272a', '#a3e635', '#52525b', '#4d7c0f'];
     const chartData = {
       departments: { labels: @json($departmentChart['labels']), counts: @json($departmentChart['counts']) },
       attendance: { labels: @json($attendanceTrend->pluck('label')), present: @json($attendanceTrend->pluck('present')) },
@@ -304,11 +471,13 @@
           datasets: [{
             label: 'Present',
             data: chartData.attendance.present,
-            borderColor: '#3b7ddd',
-            backgroundColor: 'rgba(59, 125, 221, 0.15)',
+            borderColor: '#9acd32',
+            backgroundColor: 'rgba(154, 205, 50, 0.22)',
             fill: true,
             tension: 0.35,
-            pointRadius: 5
+            pointRadius: 5,
+            pointBackgroundColor: '#9acd32',
+            pointBorderColor: '#09090b'
           }]
         },
         options: {
@@ -325,7 +494,7 @@
           labels: chartData.gender.labels,
           datasets: [{
             data: chartData.gender.counts,
-            backgroundColor: ['#3b7ddd', '#e83e8c'],
+            backgroundColor: ['#9acd32', '#09090b'],
             borderWidth: 2
           }]
         },
@@ -343,7 +512,7 @@
           datasets: [{
             label: 'Net Salary',
             data: chartData.payroll.totals,
-            backgroundColor: '#1cbb8c',
+            backgroundColor: '#9acd32',
             borderRadius: 6
           }]
         },
@@ -413,15 +582,15 @@
   <style>
   .db-qsearch-wrap {
     position: relative;
-    background: linear-gradient(135deg,rgba(59,125,221,.07),rgba(28,187,140,.07));
-    border: 1.5px solid rgba(59,125,221,.18);
-    border-radius: 14px;
+    background: #ffffff;
+    border: 1.5px solid #e4e4e7;
+    border-radius: 12px;
     padding: 10px 14px;
     transition: box-shadow .2s;
   }
   .db-qsearch-wrap:focus-within {
-    box-shadow: 0 0 0 3px rgba(59,125,221,.18);
-    border-color: #3b7ddd;
+    box-shadow: 0 0 0 2px rgba(9,9,11,.1);
+    border-color: #09090b;
   }
   .db-qsearch-inner {
     display: flex;
@@ -430,7 +599,7 @@
     position: relative;
   }
   .db-qsearch-icon {
-    color: #3b7ddd;
+    color: #09090b;
     font-size: 1.05rem;
     flex-shrink: 0;
   }
@@ -444,29 +613,30 @@
     min-width: 0;
     padding: 4px 0;
   }
-  .db-qsearch-input::placeholder { color: #adb5bd; }
+  .db-qsearch-input::placeholder { color: #a1a1aa; }
   .db-qsearch-link {
     flex-shrink: 0;
     font-size: .8rem;
     font-weight: 600;
-    color: #3b7ddd;
+    color: #09090b;
     text-decoration: none;
-    background: rgba(59,125,221,.1);
+    background: #f4f4f5;
+    border: 1px solid #e4e4e7;
     border-radius: 8px;
     padding: 4px 10px;
     white-space: nowrap;
     transition: background .15s;
   }
-  .db-qsearch-link:hover { background: rgba(59,125,221,.2); color: #2563eb; }
+  .db-qsearch-link:hover { background: #e4e4e7; color: #000; }
   /* Dropdown */
   .db-qsearch-dropdown {
     position: absolute;
     top: calc(100% + 8px);
     left: 0; right: 0;
     background: #fff;
-    border: 1px solid #e0e6ed;
-    border-radius: 14px;
-    box-shadow: 0 12px 40px rgba(0,0,0,.13);
+    border: 1px solid #e4e4e7;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.08);
     z-index: 1050;
     max-height: 340px;
     overflow-y: auto;
@@ -482,16 +652,15 @@
     transition: background .12s;
     text-decoration: none;
     color: inherit;
-    border-bottom: 1px solid #f5f7fa;
+    border-bottom: 1px solid #f4f4f5;
   }
   .db-ac-item:last-child { border-bottom: none; }
-  .db-ac-item:hover { background: #f0f4ff; }
+  .db-ac-item:hover { background: #fafafa; }
   .db-ac-avatar {
     width: 38px; height: 38px; border-radius: 50%;
-    background: linear-gradient(135deg,#3b7ddd,#1cbb8c);
+    background: #09090b;
     display: flex; align-items: center; justify-content: center;
     color: #fff; font-size: .78rem; font-weight: 700; flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(59,125,221,.3);
   }
   .db-ac-info { flex: 1; min-width: 0; }
   .db-ac-name { font-weight: 600; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

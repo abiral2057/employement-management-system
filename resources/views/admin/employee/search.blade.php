@@ -5,14 +5,14 @@
 @endsection
 
 @section('header')
-  <div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="page-header d-flex align-items-center justify-content-between mb-4 pb-3 flex-wrap gap-3">
     <div>
-      <h1 class="h3 mb-1">
-        <i class="fa-solid fa-magnifying-glass-chart text-primary me-2"></i>{{ __('Employee Search') }}
+      <h1 class="h1 mb-2">
+        <i class="fa-solid fa-magnifying-glass-chart text-dark me-2"></i>{{ __('Employee Search') }}
       </h1>
-      <p class="text-muted mb-0 small">Search by Employee ID or Full Name to view complete profile, history &amp; payslip</p>
+      <p class="text-muted fs-6 mb-0">Search by Employee ID or Full Name to view complete profile, history &amp; payslip</p>
     </div>
-    <a href="{{ Auth::user()->role->slug === 'super-admin' ? route('employee.index') : (Auth::user()->role->slug === 'administrator' ? route('admin.employee.index') : route('hr.employee.index') ) }}" class="btn btn-outline-secondary btn-sm">
+    <a href="{{ Auth::user()->role->slug === 'super-admin' ? route('employee.index') : (Auth::user()->role->slug === 'administrator' ? route('admin.employee.index') : route('hr.employee.index') ) }}" class="btn btn-outline-secondary">
       <i class="fas fa-list me-1"></i> All Employees
     </a>
   </div>
@@ -66,38 +66,42 @@
         </h5>
       </div>
       <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light text-uppercase small text-muted">
             <tr>
-              <th>#</th>
-              <th>Employee ID</th>
-              <th>Full Name</th>
-              <th>Department</th>
-              <th>Designation</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th style="width: 50px;">#</th>
+              <th>{{ __('Employee Name') }}</th>
+              <th class="text-end" style="width: 140px;">{{ __('Action') }}</th>
             </tr>
           </thead>
           <tbody>
             @foreach($results as $i => $emp)
             <tr>
-              <td class="text-muted">{{ $i + 1 }}</td>
-              <td><span class="badge bg-primary bg-opacity-10 text-primary fw-semibold">{{ $emp->unique_id }}</span></td>
+              <td class="text-muted fw-bold">{{ $i + 1 }}</td>
               <td>
-                <strong>{{ $emp->firstname }} {{ $emp->lastname }}</strong>
+                <div class="d-flex align-items-center gap-3">
+                  <div class="avatar-mono flex-shrink-0" style="width:42px;height:42px;background:#09090b;color:#ffffff;font-size:.9rem;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                    {{ strtoupper(substr($emp->firstname ?? 'E', 0, 1)) }}{{ strtoupper(substr($emp->lastname ?? 'M', 0, 1)) }}
+                  </div>
+                  <div>
+                    <a href="{{ (Auth::user()->role->slug === 'super-admin' ? route('employee.show', $emp->id) : (Auth::user()->role->slug === 'administrator' ? route('admin.employee.show', $emp->id) : route('hr.employee.show', $emp->id) )) }}" class="fw-bold fs-5 text-dark text-decoration-none text-hover-primary d-block">
+                      {{ $emp->firstname }} {{ $emp->lastname }}
+                    </a>
+                    <div class="small text-muted">
+                      <span class="badge bg-light text-dark border me-1">{{ $emp->unique_id }}</span>
+                      <span>{{ optional($emp->department)->title ?? 'General' }}</span> &bull; <span>{{ optional($emp->designation)->title ?? 'Staff' }}</span>
+                      @if($emp->status == 1)
+                        <span class="badge bg-success bg-opacity-10 text-success ms-1">Active</span>
+                      @else
+                        <span class="badge bg-secondary ms-1">Inactive</span>
+                      @endif
+                    </div>
+                  </div>
+                </div>
               </td>
-              <td>{{ optional($emp->department)->title ?? '—' }}</td>
-              <td>{{ optional($emp->designation)->title ?? '—' }}</td>
-              <td>
-                @if($emp->status == 1)
-                  <span class="badge bg-success">Active</span>
-                @else
-                  <span class="badge bg-secondary">Inactive</span>
-                @endif
-              </td>
-              <td>
-                <a href="{{ (Auth::user()->role->slug === 'super-admin' ? route('employee.search') : (Auth::user()->role->slug === 'administrator' ? route('admin.employee.search') : route('hr.employee.search') )) . '?query=' . urlencode($emp->unique_id) }}" class="btn btn-primary btn-sm">
-                  <i class="fas fa-eye me-1"></i> View Profile
+              <td class="text-end">
+                <a href="{{ (Auth::user()->role->slug === 'super-admin' ? route('employee.show', $emp->id) : (Auth::user()->role->slug === 'administrator' ? route('admin.employee.show', $emp->id) : route('hr.employee.show', $emp->id) )) }}" class="btn btn-dark btn-sm fw-semibold px-3">
+                  {{ __('Profile') }} &rarr;
                 </a>
               </td>
             </tr>
@@ -405,35 +409,35 @@
               <div class="card-body">
                 <div class="emp-salary-row">
                   <span>Basic Salary</span>
-                  <span class="fw-semibold">৳ {{ number_format($sal->basic ?? 0, 2) }}</span>
+                  <span class="fw-semibold">€ {{ number_format($sal->basic ?? 0, 2) }}</span>
                 </div>
                 <div class="emp-salary-row">
                   <span>House Rent</span>
-                  <span>৳ {{ number_format($sal->house_rent ?? 0, 2) }}</span>
+                  <span>€ {{ number_format($sal->house_rent ?? 0, 2) }}</span>
                 </div>
                 <div class="emp-salary-row">
                   <span>Medical Allowance</span>
-                  <span>৳ {{ number_format($sal->medical ?? 0, 2) }}</span>
+                  <span>€ {{ number_format($sal->medical ?? 0, 2) }}</span>
                 </div>
                 <div class="emp-salary-row">
                   <span>Transport Allowance</span>
-                  <span>৳ {{ number_format($sal->transport ?? 0, 2) }}</span>
+                  <span>€ {{ number_format($sal->transport ?? 0, 2) }}</span>
                 </div>
                 <div class="emp-salary-row">
                   <span>Phone Bill</span>
-                  <span>৳ {{ number_format($sal->phone_bill ?? 0, 2) }}</span>
+                  <span>€ {{ number_format($sal->phone_bill ?? 0, 2) }}</span>
                 </div>
                 <div class="emp-salary-row">
                   <span>Internet Bill</span>
-                  <span>৳ {{ number_format($sal->internet_bill ?? 0, 2) }}</span>
+                  <span>€ {{ number_format($sal->internet_bill ?? 0, 2) }}</span>
                 </div>
                 <div class="emp-salary-row">
                   <span>Special Allowance</span>
-                  <span>৳ {{ number_format($sal->special ?? 0, 2) }}</span>
+                  <span>€ {{ number_format($sal->special ?? 0, 2) }}</span>
                 </div>
                 <div class="emp-salary-row">
                   <span>Overtime Pay</span>
-                  <span>৳ {{ number_format($sal->overtime_pay ?? 0, 2) }}</span>
+                  <span>€ {{ number_format($sal->overtime_pay ?? 0, 2) }}</span>
                 </div>
                 @php
                   $grossEarnings = ($sal->basic ?? 0) + ($sal->house_rent ?? 0) + ($sal->medical ?? 0) +
@@ -442,7 +446,7 @@
                 @endphp
                 <div class="emp-salary-total bg-success bg-opacity-10">
                   <span class="fw-bold text-success">Total Earnings</span>
-                  <span class="fw-bold text-success fs-5">৳ {{ number_format($grossEarnings, 2) }}</span>
+                  <span class="fw-bold text-success fs-5">€ {{ number_format($grossEarnings, 2) }}</span>
                 </div>
               </div>
             </div>
@@ -457,19 +461,19 @@
               <div class="card-body">
                 <div class="emp-salary-row">
                   <span>Provident Fund</span>
-                  <span>৳ {{ number_format($sal->provident_fund ?? 0, 2) }}</span>
+                  <span>€ {{ number_format($sal->provident_fund ?? 0, 2) }}</span>
                 </div>
                 <div class="emp-salary-row">
                   <span>Income Tax</span>
-                  <span>৳ {{ number_format($sal->income_tax ?? 0, 2) }}</span>
+                  <span>€ {{ number_format($sal->income_tax ?? 0, 2) }}</span>
                 </div>
                 <div class="emp-salary-row">
                   <span>Health Insurance</span>
-                  <span>৳ {{ number_format($sal->health_insurance ?? 0, 2) }}</span>
+                  <span>€ {{ number_format($sal->health_insurance ?? 0, 2) }}</span>
                 </div>
                 <div class="emp-salary-row">
                   <span>Life Insurance</span>
-                  <span>৳ {{ number_format($sal->life_insurance ?? 0, 2) }}</span>
+                  <span>€ {{ number_format($sal->life_insurance ?? 0, 2) }}</span>
                 </div>
                 @php
                   $totalDeductions = ($sal->provident_fund ?? 0) + ($sal->income_tax ?? 0) +
@@ -478,13 +482,13 @@
                 @endphp
                 <div class="emp-salary-total bg-danger bg-opacity-10">
                   <span class="fw-bold text-danger">Total Deductions</span>
-                  <span class="fw-bold text-danger fs-5">৳ {{ number_format($totalDeductions, 2) }}</span>
+                  <span class="fw-bold text-danger fs-5">€ {{ number_format($totalDeductions, 2) }}</span>
                 </div>
 
                 <div class="emp-net-salary-box mt-3">
                   <div class="d-flex justify-content-between align-items-center">
                     <span class="fw-bold fs-6">Net Take-Home Salary</span>
-                    <span class="fw-bold fs-4 text-primary">৳ {{ number_format($netSalary, 2) }}</span>
+                    <span class="fw-bold fs-4 text-primary">€ {{ number_format($netSalary, 2) }}</span>
                   </div>
                   <div class="text-muted small mt-1">Total Earnings − Total Deductions = Net Salary</div>
                 </div>
@@ -533,18 +537,18 @@
                 </span>
               </div>
               <div class="card-body">
-                <div class="emp-payslip-row"><span>Basic</span><span>৳ {{ number_format($payroll->basic ?? 0, 2) }}</span></div>
-                <div class="emp-payslip-row"><span>House Rent</span><span>৳ {{ number_format($payroll->house_rent ?? 0, 2) }}</span></div>
-                <div class="emp-payslip-row"><span>Medical</span><span>৳ {{ number_format($payroll->medical ?? 0, 2) }}</span></div>
-                <div class="emp-payslip-row"><span>Gross Salary</span><span class="fw-semibold text-success">৳ {{ number_format($payroll->gross_salary ?? 0, 2) }}</span></div>
-                <div class="emp-payslip-row"><span>Deductions</span><span class="text-danger">− ৳ {{ number_format($payroll->deduction ?? 0, 2) }}</span></div>
+                <div class="emp-payslip-row"><span>Basic</span><span>€ {{ number_format($payroll->basic ?? 0, 2) }}</span></div>
+                <div class="emp-payslip-row"><span>House Rent</span><span>€ {{ number_format($payroll->house_rent ?? 0, 2) }}</span></div>
+                <div class="emp-payslip-row"><span>Medical</span><span>€ {{ number_format($payroll->medical ?? 0, 2) }}</span></div>
+                <div class="emp-payslip-row"><span>Gross Salary</span><span class="fw-semibold text-success">€ {{ number_format($payroll->gross_salary ?? 0, 2) }}</span></div>
+                <div class="emp-payslip-row"><span>Deductions</span><span class="text-danger">− € {{ number_format($payroll->deduction ?? 0, 2) }}</span></div>
                 @if($payroll->days_present || $payroll->days_absent)
                 <div class="emp-payslip-row"><span>Days Present</span><span class="badge bg-success">{{ $payroll->days_present ?? 0 }} days</span></div>
                 <div class="emp-payslip-row"><span>Days Absent</span><span class="badge bg-danger">{{ $payroll->days_absent ?? 0 }} days</span></div>
                 @endif
                 <div class="emp-payslip-net">
                   <span>Net Salary</span>
-                  <span class="emp-payslip-net-amount">৳ {{ number_format($payroll->net_salary ?? 0, 2) }}</span>
+                  <span class="emp-payslip-net-amount">€ {{ number_format($payroll->net_salary ?? 0, 2) }}</span>
                 </div>
               </div>
               <div class="card-footer bg-transparent border-0 pt-0">
@@ -703,40 +707,40 @@
   gap: 12px;
   transition: background .15s;
 }
-.emp-autocomplete-item:hover { background: #f0f4ff; }
+.emp-autocomplete-item:hover { background: #f4f4f5; }
 .emp-ac-avatar {
   width: 36px; height: 36px; border-radius: 50%;
-  background: linear-gradient(135deg,#3b7ddd,#1cbb8c);
+  background: #09090b;
   display: flex; align-items: center; justify-content: center;
   color: #fff; font-size: .75rem; font-weight: 700; flex-shrink: 0;
 }
 .emp-ac-info { flex: 1; min-width: 0; }
-.emp-ac-name { font-weight: 600; font-size: .9rem; }
-.emp-ac-meta { font-size: .78rem; color: #6c757d; }
-.emp-ac-id { font-size: .78rem; color: #3b7ddd; font-weight: 600; }
+.emp-ac-name { font-weight: 600; font-size: .9rem; color: #09090b; }
+.emp-ac-meta { font-size: .78rem; color: #71717a; }
+.emp-ac-id { font-size: .78rem; color: #09090b; font-weight: 700; background: #f4f4f5; padding: 2px 6px; border-radius: 4px; }
 
 /* ── Empty state ── */
 .emp-empty-state { }
-.emp-empty-icon { font-size: 4rem; color: #c0cfe4; }
+.emp-empty-icon { font-size: 4rem; color: #d4d4d8; }
 
 /* ── Profile hero ── */
-.emp-profile-hero { border-radius: 16px; overflow: hidden; }
+.emp-profile-hero { border-radius: 14px; overflow: hidden; border: 1px solid #e4e4e7; background: #fff; }
 .emp-hero-banner {
   height: 80px;
-  background: linear-gradient(135deg, #3b7ddd 0%, #1cbb8c 100%);
+  background: #09090b;
 }
 .emp-hero-body { padding: 0 16px 16px; margin-top: -28px; }
 .emp-avatar-wrap { flex-shrink: 0; }
 .emp-avatar {
   width: 72px; height: 72px; border-radius: 50%;
-  background: linear-gradient(135deg, #3b7ddd, #1cbb8c);
+  background: #09090b;
   display: flex; align-items: center; justify-content: center;
   color: #fff; font-size: 1.4rem; font-weight: 700;
-  border: 3px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.15);
 }
-.emp-hero-name { font-size: 1.4rem; font-weight: 700; }
+.emp-hero-name { font-size: 1.4rem; font-weight: 750; color: #09090b; }
 .emp-status-badge { font-size: .7rem; }
-.emp-hero-meta { font-size: .875rem; }
+.emp-hero-meta { font-size: .875rem; color: #52525b; }
 .emp-hero-actions { margin-top: 8px; }
 
 /* ── Tabs ── */
@@ -809,34 +813,35 @@
   padding: 12px; border-radius: 10px; margin-top: 8px;
 }
 .emp-net-salary-box {
-  background: linear-gradient(135deg, #3b7ddd15, #1cbb8c15);
-  border: 1px solid #3b7ddd30;
-  border-radius: 12px; padding: 16px;
+  background: #f4f4f5;
+  border: 1px solid #e4e4e7;
+  border-radius: 10px; padding: 16px;
 }
 
 /* ── Payslip cards ── */
-.emp-payslip-card { border-radius: 14px; transition: transform .2s, box-shadow .2s; }
-.emp-payslip-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.1) !important; }
+.emp-payslip-card { border-radius: 12px; transition: transform .2s, box-shadow .2s; border: 1px solid #e4e4e7; }
+.emp-payslip-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.06) !important; }
 .emp-payslip-header {
   display: flex; justify-content: space-between; align-items: center;
-  background: linear-gradient(135deg, #3b7ddd, #1cbb8c);
-  color: #fff; border-radius: 14px 14px 0 0 !important; padding: 14px 16px;
+  background: #09090b;
+  color: #fff; border-radius: 12px 12px 0 0 !important; padding: 14px 16px;
 }
 .emp-payslip-badge {
-  background: rgba(255,255,255,.2);
-  border-radius: 20px; padding: 4px 10px; font-size: .75rem;
+  background: #27272a;
+  border-radius: 6px; padding: 4px 10px; font-size: .75rem; color: #f4f4f5;
 }
 .emp-payslip-row {
   display: flex; justify-content: space-between;
-  padding: 6px 0; border-bottom: 1px solid #f5f5f5; font-size: .875rem;
+  padding: 6px 0; border-bottom: 1px solid #f4f4f5; font-size: .875rem;
 }
 .emp-payslip-net {
   display: flex; justify-content: space-between; align-items: center;
-  background: linear-gradient(135deg, #3b7ddd10, #1cbb8c10);
-  border-radius: 10px; padding: 10px 12px; margin-top: 8px;
+  background: #f4f4f5;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px; padding: 10px 12px; margin-top: 8px;
   font-weight: 600;
 }
-.emp-payslip-net-amount { color: #1cbb8c; font-size: 1.15rem; font-weight: 700; }
+.emp-payslip-net-amount { color: #09090b; font-size: 1.15rem; font-weight: 800; }
 
 /* ── Print: hide sidebar/navbar ── */
 @media print {
@@ -939,23 +944,23 @@ function printPayslip(id, name, empId, dept, desig, period, basic, houseRent, me
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f7fa; padding: 30px; }
-    .payslip { max-width: 700px; margin: 0 auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,.1); }
-    .ps-header { background: linear-gradient(135deg, #3b7ddd, #1cbb8c); color: #fff; padding: 28px 32px; }
-    .ps-header h2 { font-size: 1.5rem; margin-bottom: 4px; }
-    .ps-header p { opacity: .85; font-size: .9rem; }
-    .ps-badge { background: rgba(255,255,255,.2); padding: 4px 12px; border-radius: 20px; font-size: .8rem; display: inline-block; margin-top: 8px; }
+    .payslip { max-width: 700px; margin: 0 auto; background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #e4e4e7; box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+    .ps-header { background: #09090b; color: #fff; padding: 28px 32px; }
+    .ps-header h2 { font-size: 1.5rem; margin-bottom: 4px; letter-spacing: -0.02em; }
+    .ps-header p { color: #a1a1aa; font-size: .9rem; }
+    .ps-badge { background: #27272a; color: #f4f4f5; padding: 4px 12px; border-radius: 6px; font-size: .8rem; display: inline-block; margin-top: 8px; }
     .ps-body { padding: 28px 32px; }
-    .ps-employee-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; background: #f8f9fa; border-radius: 10px; padding: 16px; }
+    .ps-employee-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; background: #f4f4f5; border-radius: 8px; padding: 16px; }
     .ps-emp-item { }
-    .ps-emp-label { font-size: .72rem; color: #6c757d; text-transform: uppercase; letter-spacing: .05em; }
-    .ps-emp-value { font-size: .9rem; font-weight: 600; color: #212529; margin-top: 2px; }
+    .ps-emp-label { font-size: .72rem; color: #71717a; text-transform: uppercase; letter-spacing: .05em; }
+    .ps-emp-value { font-size: .9rem; font-weight: 700; color: #09090b; margin-top: 2px; }
     .ps-section { margin-bottom: 20px; }
-    .ps-section-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #6c757d; border-bottom: 1px solid #e9ecef; padding-bottom: 6px; margin-bottom: 10px; }
-    .ps-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: .88rem; border-bottom: 1px dashed #f0f0f0; }
-    .ps-total { display: flex; justify-content: space-between; padding: 10px 14px; border-radius: 8px; font-weight: 700; margin-top: 6px; }
-    .ps-total.earn { background: #d4edda; color: #155724; }
-    .ps-total.ded { background: #f8d7da; color: #721c24; }
-    .ps-net { background: linear-gradient(135deg, #3b7ddd, #1cbb8c); color: #fff; padding: 18px 24px; border-radius: 12px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .ps-section-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #71717a; border-bottom: 1px solid #e4e4e7; padding-bottom: 6px; margin-bottom: 10px; }
+    .ps-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: .88rem; border-bottom: 1px dashed #e4e4e7; }
+    .ps-total { display: flex; justify-content: space-between; padding: 10px 14px; border-radius: 6px; font-weight: 700; margin-top: 6px; }
+    .ps-total.earn { background: #ecfdf5; color: #065f46; }
+    .ps-total.ded { background: #fef2f2; color: #991b1b; }
+    .ps-net { background: #09090b; color: #fff; padding: 18px 24px; border-radius: 8px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
     .ps-net-label { font-size: 1rem; font-weight: 600; }
     .ps-net-amount { font-size: 2rem; font-weight: 800; }
     .ps-footer { text-align: center; padding: 16px; font-size: .78rem; color: #6c757d; border-top: 1px solid #eee; }
@@ -981,21 +986,21 @@ function printPayslip(id, name, empId, dept, desig, period, basic, houseRent, me
 
     <div class="ps-section">
       <div class="ps-section-title">Earnings</div>
-      <div class="ps-row"><span>Basic Salary</span><span>৳ ${parseFloat(basic).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
-      <div class="ps-row"><span>House Rent Allowance</span><span>৳ ${parseFloat(houseRent).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
-      <div class="ps-row"><span>Medical Allowance</span><span>৳ ${parseFloat(medical).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
-      <div class="ps-total earn"><span>Gross Salary</span><span>৳ ${parseFloat(gross).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
+      <div class="ps-row"><span>Basic Salary</span><span>€ ${parseFloat(basic).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
+      <div class="ps-row"><span>House Rent Allowance</span><span>€ ${parseFloat(houseRent).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
+      <div class="ps-row"><span>Medical Allowance</span><span>€ ${parseFloat(medical).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
+      <div class="ps-total earn"><span>Gross Salary</span><span>€ ${parseFloat(gross).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
     </div>
 
     <div class="ps-section">
       <div class="ps-section-title">Deductions</div>
-      <div class="ps-row"><span>Total Deductions</span><span>− ৳ ${parseFloat(deduction).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
-      <div class="ps-total ded"><span>Total Deducted</span><span>− ৳ ${parseFloat(deduction).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
+      <div class="ps-row"><span>Total Deductions</span><span>− € ${parseFloat(deduction).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
+      <div class="ps-total ded"><span>Total Deducted</span><span>− € ${parseFloat(deduction).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
     </div>
 
     <div class="ps-net">
       <div class="ps-net-label">Net Take-Home Salary</div>
-      <div class="ps-net-amount">৳ ${parseFloat(net).toLocaleString('en-US', {minimumFractionDigits:2})}</div>
+      <div class="ps-net-amount">€ ${parseFloat(net).toLocaleString('en-US', {minimumFractionDigits:2})}</div>
     </div>
   </div>
   <div class="ps-footer">
