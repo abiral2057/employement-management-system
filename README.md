@@ -188,31 +188,6 @@ Congratulations! Employee Management System should now be up and running at `htt
 ## AdminKit Admin Panel
 Our Employee Management System incorporates the AdminKit Admin Panel to streamline administrative tasks. AdminKit is a flexible and modern admin dashboard template built with Bootstrap and other front-end technologies. Its customizable components and UI elements enable efficient management of various HRMS functionalities.
 
-Get it from here: **[AdminKit](https://adminkit.io/)**
-
-
-## Contributors
-
-##### Mohona Akter
-- GitHub: [MOHONA678](https://github.com/MOHONA678/)
-- Contributions: Multirole Authentication with Persmission, User Management, Attendance System.
-
-##### Mst.Shorifa Akter
-- GitHub: [Shorifa1234](https://github.com/Shorifa1234)
-- Contributions: Staff Management, Leave Management, Payroll system.
-
-##### Muhammad Nasir Uddin Khan Shawon
-- GitHub: [shawonk007](https://github.com/shawonk007)
-- Contributions: Database Design & Management.
-
-
-## Want to Contribute?
-We welcome contributions from the community! If you'd like to contribute to the Employee Management System project, please follow these steps:
-
-01. Fork the repository.
-02. Create a new branch for your feature/bug fix.
-03. Make your changes and test thoroughly.
-04. Submit a pull request explaining your changes and the problem they solve.
 
 
 ## License
